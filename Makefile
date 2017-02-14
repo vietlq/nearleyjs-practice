@@ -1,3 +1,7 @@
+.PHONY: all compile test generate graph
+
+all: compile test generate graph
+
 compile:
 	nearleyc csscolor.ne -o csscolor.js
 
