@@ -11,8 +11,7 @@ colorValue -> max255 {% id %}
 
 opacityValue -> max1float {% id %}
 
-max255 -> [0-9] {% function(d) { return parseInt(d[0]); } %}
-        | [1-9] [0-9] {% function(d) { return parseInt(d.join("")); } %}
+max255 -> [1-9]:? [0-9] {% function(d) { return parseInt(d.join("")); } %}
         | "1" [0-9] [0-9] {% function(d) { return parseInt(d.join("")); } %}
         | "2" [0-5] [0-5] {% function(d) { return parseInt(d.join("")); } %}
 
