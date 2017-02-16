@@ -31,7 +31,7 @@ line ->
 
 sentence ->
       fragment:+ {% id %}
-    | [\w]:+ {% function(d) { return d.join(""); } %}
+    | [\w]:+ {% function(d) { return {type: 'words', text: d[0].join("")}; } %}
 
 fragment ->
       shortcode {% id %}

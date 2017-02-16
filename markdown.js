@@ -34,7 +34,7 @@ var grammar = {
     {"name": "sentence", "symbols": ["sentence$ebnf$1"], "postprocess": id},
     {"name": "sentence$ebnf$2", "symbols": [/[\w]/]},
     {"name": "sentence$ebnf$2", "symbols": [/[\w]/, "sentence$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "sentence", "symbols": ["sentence$ebnf$2"], "postprocess": function(d) { return d.join(""); }},
+    {"name": "sentence", "symbols": ["sentence$ebnf$2"], "postprocess": function(d) { return {type: 'words', text: d[0].join("")}; }},
     {"name": "fragment", "symbols": ["shortcode"], "postprocess": id},
     {"name": "fragment", "symbols": ["italic"], "postprocess": id},
     {"name": "fragment", "symbols": ["strong"], "postprocess": id},
