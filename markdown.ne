@@ -27,13 +27,18 @@ line ->
     | h4 "\n" {% function(d) { return d[0]; } %}
     | h5 "\n" {% function(d) { return d[0]; } %}
     | h6 "\n" {% function(d) { return d[0]; } %}
+    | ulistitem {% id %}
     | sentence {% id %}
 
+ulistitem -> [ ]:* "* " sentence {% function(d) { return {type: 'ulistitem', value: d[2], ident: d[0].length}; } %}
+
 sentence ->
-      fragment:+ {% id %}
-    | [^#*\n]:+ {% function(d) { return {type: 'words', text: d[0].join("")}; } %}
-    | fragment sentence
-    | [^#*\n]:+ sentence
+      fragment {% id %}
+    | normalText {% id %}
+    | sentence fragment
+
+normalText ->
+      [^#*\s\n] [^#*\n]:* {% function(d) { return {type: 'words', text: d[0] + d[1].join("")}; } %}
 
 fragment ->
       shortcode {% id %}
@@ -49,8 +54,8 @@ h5 -> "#####" _ [^\n]:+ {% function(d) { return {h5: d[2].join("")}; } %}
 h6 -> "######" _ [^\n]:+ {% function(d) { return {h6: d[2].join("")}; } %}
 
 shortcode -> "`" [^`]:* "`" {% function(d) { return {shortcode: d[1].join("")}; } %}
-italic -> "*" [^*]:+ "*" {% function(d) { return {italic: d[1].join("")}; } %}
-strong -> "**" [^*]:+ "**" {% function(d) { return {strong: d[1].join("")}; } %}
+italic -> "*" [^\s] [^*]:* "*" {% function(d) { return {italic: d[1] + d[2].join("")}; } %}
+strong -> "**" [^\s] [^*]:* "**" {% function(d) { return {strong: d[1] + d[2].join("")}; } %}
 link -> "[" [^\]]:+ "]" "(" [^\)]:+ ")" {% function(d) { return {linkText: d[1].join(""), linkUrl: d[4].join("")}; } %}
 
 _ -> [\s]:+ {% function() { return null; } %}
