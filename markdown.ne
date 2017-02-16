@@ -7,15 +7,15 @@
 markdown -> lines {% id %}
 
 lines -> (emptylines line):* emptylines {% function(d) {
-	let output = [];
-	for (let i in d[0]) {
-		for (let j in d[0][i]) {
-			if (d[0][i][j]) {
-				output.push(d[0][i][j]);
-			}
-		}
-	}
-	return output;
+    let output = [];
+    for (let i in d[0]) {
+        for (let j in d[0][i]) {
+            if (d[0][i][j]) {
+                output.push(d[0][i][j]);
+            }
+        }
+    }
+    return output;
 } %}
 
 emptylines -> "\n":* {% function(d) { return (d[0].length > 0) ? {emptylines: d[0].length} : null; } %}
@@ -27,7 +27,11 @@ line ->
     | h4 {% id %}
     | h5 {% id %}
     | h6 {% id %}
-    | fragment:+ {% id %}
+    | sentence {% id %}
+
+sentence ->
+      fragment:+ {% id %}
+    | [\w]:+ {% function(d) { return d.join(""); } %}
 
 fragment ->
       shortcode {% id %}
@@ -35,12 +39,12 @@ fragment ->
     | strong {% id %}
     | link {% id %}
 
-h1 -> "#" _ [\w]:+ {% function(d) { return {h1: d[2].join("")}; } %}
-h2 -> "##" _ [\w]:+ {% function(d) { return {h2: d[2].join("")}; } %}
-h3 -> "###" _ [\w]:+ {% function(d) { return {h3: d[2].join("")}; } %}
-h4 -> "####" _ [\w]:+ {% function(d) { return {h4: d[2].join("")}; } %}
-h5 -> "#####" _ [\w]:+ {% function(d) { return {h5: d[2].join("")}; } %}
-h6 -> "######" _ [\w]:+ {% function(d) { return {h6: d[2].join("")}; } %}
+h1 -> "#" _ [^\n]:+ {% function(d) { return {h1: d[2].join("")}; } %}
+h2 -> "##" _ [^\n]:+ {% function(d) { return {h2: d[2].join("")}; } %}
+h3 -> "###" _ [^\n]:+ {% function(d) { return {h3: d[2].join("")}; } %}
+h4 -> "####" _ [^\n]:+ {% function(d) { return {h4: d[2].join("")}; } %}
+h5 -> "#####" _ [^\n]:+ {% function(d) { return {h5: d[2].join("")}; } %}
+h6 -> "######" _ [^\n]:+ {% function(d) { return {h6: d[2].join("")}; } %}
 
 shortcode -> "`" [^`]:* "`" {% function(d) { return {shortcode: d[1].join("")}; } %}
 italic -> "*" [^*]:+ "*" {% function(d) { return {italic: d[1].join("")}; } %}
