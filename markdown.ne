@@ -4,41 +4,103 @@
 # https://guides.github.com/features/mastering-markdown/
 # http://www.webpagefx.com/tools/emoji-cheat-sheet/
 
-markdown -> lines {% id %}
+@{%
 
-lines -> (emptylines line):* emptylines {% function(d) {
+function joinGrandChildren(data) {
     let output = [];
-    for (let i in d[0]) {
-        for (let j in d[0][i]) {
-            if (d[0][i][j]) {
-                output.push(d[0][i][j]);
-            }
-        }
+    for (let i in data) {
+        output.push(data[i].join(""));
     }
-    return output;
-} %}
+    return output.join("");
+}
 
-emptylines -> "\n":* {% function(d) { return (d[0].length > 0) ? {emptylines: d[0].length} : null; } %}
+function wrap(tag, content) {
+    return ("<" + tag + ">" + content + "</" + tag + ">");
+}
+
+//function shortcode(d) { return {shortcode: d[1].join("")}; }
+function shortcode(d) { return wrap("code", d[1].join("")); }
+
+//function italic(d) { return {italic: (d[1] + d[2].join(""))}; }
+function italic(d) { return wrap("em", d[1] + d[2].join("")); }
+
+//function strong(d) { return {strong: (d[1] + d[2].join(""))}; }
+function strong(d) { return wrap("strong", d[1] + d[2].join("")); }
+
+//function link(d) { return {linkText: d[1].join(""), linkUrl: d[4].join("")}; }
+function link(d) { return '<a href="' + d[4].join("") + '">' + d[1].join("") + '</a>'; }
+
+//function ulistitem(d) { return {ulistitem: d[2]}; }
+function ulistitem(d) { return wrap("li", d[2]); }
+
+/*
+function processLines(data, location, reject) {
+    let output = [ data[0] ];
+
+    for (let i in data[1]) {
+        output.push([data[1][i][0].length]);
+        output.push(data[1][i][1]);
+    }
+
+    output.push(data[2].length);
+
+    return output;
+}
+*/
+
+function processLines(data, location, reject) {
+    let output = [ data[0] ];
+
+    for (let i in data[1]) {
+        for (let j = 0; j < data[1][i][0].length; ++j) {
+            output.push("<br/>");
+        }
+        output.push(data[1][i][1]);
+    }
+
+    output.push(data[2].length);
+
+    return output.join("\n");
+}
+
+function sentence(data, location, reject) {
+    let output = [ data[0] ];
+
+    for (let i in data[1]) {
+        output.push(data[1][i][0].length);
+        output.push(data[1][i][1]);
+    }
+
+    return output.join("");
+}
+
+%}
+
+markdown -> "\n":* lines {% function(d) { return d[1]; } %}
+
+lines -> line ("\n":+ line):* "\n":* {% processLines %}
 
 line ->
-      h1 "\n" {% function(d) { return d[0]; } %}
-    | h2 "\n" {% function(d) { return d[0]; } %}
-    | h3 "\n" {% function(d) { return d[0]; } %}
-    | h4 "\n" {% function(d) { return d[0]; } %}
-    | h5 "\n" {% function(d) { return d[0]; } %}
-    | h6 "\n" {% function(d) { return d[0]; } %}
+      h1 {% id %}
+    | h2 {% id %}
+    | h3 {% id %}
+    | h4 {% id %}
+    | h5 {% id %}
+    | h6 {% id %}
     | ulistitem {% id %}
-    | sentence {% id %}
+    | sentence [ \t]:* {% function(d) { return d[0]; } %}
 
-ulistitem -> [ ]:* "* " sentence {% function(d) { return {type: 'ulistitem', value: d[2], ident: d[0].length}; } %}
+ulistitem ->
+      " ":* "* " sentence {% ulistitem %}
+    | " ":* "- " sentence {% ulistitem %}
 
-sentence ->
+sentence -> textOrFrag (" \t":* textOrFrag):* {% sentence %}
+
+textOrFrag ->
       fragment {% id %}
     | normalText {% id %}
-    | sentence fragment
 
-normalText ->
-      [^#*\s\n] [^#*\n]:* {% function(d) { return {type: 'words', text: d[0] + d[1].join("")}; } %}
+normalText -> [^*`#_\n-]:+ {% function(d) { return d[0].join(""); } %}
 
 fragment ->
       shortcode {% id %}
@@ -46,16 +108,26 @@ fragment ->
     | strong {% id %}
     | link {% id %}
 
-h1 -> "#" _ [^\n]:+ {% function(d) { return {h1: d[2].join("")}; } %}
-h2 -> "##" _ [^\n]:+ {% function(d) { return {h2: d[2].join("")}; } %}
-h3 -> "###" _ [^\n]:+ {% function(d) { return {h3: d[2].join("")}; } %}
-h4 -> "####" _ [^\n]:+ {% function(d) { return {h4: d[2].join("")}; } %}
-h5 -> "#####" _ [^\n]:+ {% function(d) { return {h5: d[2].join("")}; } %}
-h6 -> "######" _ [^\n]:+ {% function(d) { return {h6: d[2].join("")}; } %}
+h1 -> "#" _ [^\n]:+ {% function(d) { return wrap("h1", d[2].join("")); } %}
+h2 -> "##" _ [^\n]:+ {% function(d) { return wrap("h2", d[2].join("")); } %}
+h3 -> "###" _ [^\n]:+ {% function(d) { return wrap("h3", d[2].join("")); } %}
+h4 -> "####" _ [^\n]:+ {% function(d) { return wrap("h4", d[2].join("")); } %}
+h5 -> "#####" _ [^\n]:+ {% function(d) { return wrap("h5", d[2].join("")); } %}
+h6 -> "######" _ [^\n]:+ {% function(d) { return wrap("h6", d[2].join("")); } %}
 
-shortcode -> "`" [^`]:* "`" {% function(d) { return {shortcode: d[1].join("")}; } %}
-italic -> "*" [^\s] [^*]:* "*" {% function(d) { return {italic: d[1] + d[2].join("")}; } %}
-strong -> "**" [^\s] [^*]:* "**" {% function(d) { return {strong: d[1] + d[2].join("")}; } %}
-link -> "[" [^\]]:+ "]" "(" [^\)]:+ ")" {% function(d) { return {linkText: d[1].join(""), linkUrl: d[4].join("")}; } %}
+shortcode ->
+      "`" [^`]:* "`" {% shortcode %}
 
-_ -> [\s]:+ {% function() { return null; } %}
+italic ->
+      "*" [^*\s] [^*]:* "*" {% italic %}
+    | "_" [^_\s] [^_]:* "_" {% italic %}
+
+strong ->
+      "**" [^*\s] [^*]:* "**" {% strong %}
+    | "__" [^_\s] [^_]:* "__" {% strong %}
+
+link ->
+      "[" [^\]]:+ "]" "(" [^\)]:+ ")" {% link %}
+
+_ ->
+      [\s]:+ {% function() { return null; } %}
