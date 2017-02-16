@@ -21,12 +21,12 @@ lines -> (emptylines line):* emptylines {% function(d) {
 emptylines -> "\n":* {% function(d) { return (d[0].length > 0) ? {emptylines: d[0].length} : null; } %}
 
 line ->
-      h1 {% id %}
-    | h2 {% id %}
-    | h3 {% id %}
-    | h4 {% id %}
-    | h5 {% id %}
-    | h6 {% id %}
+      h1 "\n" {% function(d) { return d[0]; } %}
+    | h2 "\n" {% function(d) { return d[0]; } %}
+    | h3 "\n" {% function(d) { return d[0]; } %}
+    | h4 "\n" {% function(d) { return d[0]; } %}
+    | h5 "\n" {% function(d) { return d[0]; } %}
+    | h6 "\n" {% function(d) { return d[0]; } %}
     | sentence {% id %}
 
 sentence ->
