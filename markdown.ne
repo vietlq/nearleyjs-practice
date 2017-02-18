@@ -58,7 +58,9 @@ function processLines(data, location, reject) {
         output.push(data[1][i][1]);
     }
 
-    output.push(data[2].length);
+	for (let j = 0; j < data[2].length; ++j) {
+		output.push("<br/>");
+	}
 
     return output.join("\n");
 }
@@ -67,8 +69,7 @@ function sentence(data, location, reject) {
     let output = [ data[0] ];
 
     for (let i in data[1]) {
-        output.push(data[1][i][0].length);
-        output.push(data[1][i][1]);
+		output.push(data[1][i].join(""));
     }
 
     return output.join("");
@@ -108,12 +109,12 @@ fragment ->
     | strong {% id %}
     | link {% id %}
 
-h1 -> "#" _ [^\n]:+ {% function(d) { return wrap("h1", d[2].join("")); } %}
-h2 -> "##" _ [^\n]:+ {% function(d) { return wrap("h2", d[2].join("")); } %}
-h3 -> "###" _ [^\n]:+ {% function(d) { return wrap("h3", d[2].join("")); } %}
-h4 -> "####" _ [^\n]:+ {% function(d) { return wrap("h4", d[2].join("")); } %}
-h5 -> "#####" _ [^\n]:+ {% function(d) { return wrap("h5", d[2].join("")); } %}
-h6 -> "######" _ [^\n]:+ {% function(d) { return wrap("h6", d[2].join("")); } %}
+h1 -> "#" [^\n]:+ {% function(d) { return wrap("h1", d[1].join("").trim()); } %}
+h2 -> "##" [^\n]:+ {% function(d) { return wrap("h2", d[1].join("").trim()); } %}
+h3 -> "###" [^\n]:+ {% function(d) { return wrap("h3", d[1].join("").trim()); } %}
+h4 -> "####" [^\n]:+ {% function(d) { return wrap("h4", d[1].join("".trim())); } %}
+h5 -> "#####" [^\n]:+ {% function(d) { return wrap("h5", d[1].join("").trim()); } %}
+h6 -> "######" [^\n]:+ {% function(d) { return wrap("h6", d[1].join("").trim()); } %}
 
 shortcode ->
       "`" [^`]:* "`" {% shortcode %}

@@ -56,7 +56,9 @@ function processLines(data, location, reject) {
         output.push(data[1][i][1]);
     }
 
-    output.push(data[2].length);
+	for (let j = 0; j < data[2].length; ++j) {
+		output.push("<br/>");
+	}
 
     return output.join("\n");
 }
@@ -65,8 +67,7 @@ function sentence(data, location, reject) {
     let output = [ data[0] ];
 
     for (let i in data[1]) {
-        output.push(data[1][i][0].length);
-        output.push(data[1][i][1]);
+		output.push(data[1][i].join(""));
     }
 
     return output.join("");
@@ -121,27 +122,27 @@ var grammar = {
     {"name": "fragment", "symbols": ["link"], "postprocess": id},
     {"name": "h1$ebnf$1", "symbols": [/[^\n]/]},
     {"name": "h1$ebnf$1", "symbols": [/[^\n]/, "h1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "h1", "symbols": [{"literal":"#"}, "_", "h1$ebnf$1"], "postprocess": function(d) { return wrap("h1", d[2].join("")); }},
+    {"name": "h1", "symbols": [{"literal":"#"}, "h1$ebnf$1"], "postprocess": function(d) { return wrap("h1", d[1].join("").trim()); }},
     {"name": "h2$string$1", "symbols": [{"literal":"#"}, {"literal":"#"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "h2$ebnf$1", "symbols": [/[^\n]/]},
     {"name": "h2$ebnf$1", "symbols": [/[^\n]/, "h2$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "h2", "symbols": ["h2$string$1", "_", "h2$ebnf$1"], "postprocess": function(d) { return wrap("h2", d[2].join("")); }},
+    {"name": "h2", "symbols": ["h2$string$1", "h2$ebnf$1"], "postprocess": function(d) { return wrap("h2", d[1].join("").trim()); }},
     {"name": "h3$string$1", "symbols": [{"literal":"#"}, {"literal":"#"}, {"literal":"#"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "h3$ebnf$1", "symbols": [/[^\n]/]},
     {"name": "h3$ebnf$1", "symbols": [/[^\n]/, "h3$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "h3", "symbols": ["h3$string$1", "_", "h3$ebnf$1"], "postprocess": function(d) { return wrap("h3", d[2].join("")); }},
+    {"name": "h3", "symbols": ["h3$string$1", "h3$ebnf$1"], "postprocess": function(d) { return wrap("h3", d[1].join("").trim()); }},
     {"name": "h4$string$1", "symbols": [{"literal":"#"}, {"literal":"#"}, {"literal":"#"}, {"literal":"#"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "h4$ebnf$1", "symbols": [/[^\n]/]},
     {"name": "h4$ebnf$1", "symbols": [/[^\n]/, "h4$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "h4", "symbols": ["h4$string$1", "_", "h4$ebnf$1"], "postprocess": function(d) { return wrap("h4", d[2].join("")); }},
+    {"name": "h4", "symbols": ["h4$string$1", "h4$ebnf$1"], "postprocess": function(d) { return wrap("h4", d[1].join("".trim())); }},
     {"name": "h5$string$1", "symbols": [{"literal":"#"}, {"literal":"#"}, {"literal":"#"}, {"literal":"#"}, {"literal":"#"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "h5$ebnf$1", "symbols": [/[^\n]/]},
     {"name": "h5$ebnf$1", "symbols": [/[^\n]/, "h5$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "h5", "symbols": ["h5$string$1", "_", "h5$ebnf$1"], "postprocess": function(d) { return wrap("h5", d[2].join("")); }},
+    {"name": "h5", "symbols": ["h5$string$1", "h5$ebnf$1"], "postprocess": function(d) { return wrap("h5", d[1].join("").trim()); }},
     {"name": "h6$string$1", "symbols": [{"literal":"#"}, {"literal":"#"}, {"literal":"#"}, {"literal":"#"}, {"literal":"#"}, {"literal":"#"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "h6$ebnf$1", "symbols": [/[^\n]/]},
     {"name": "h6$ebnf$1", "symbols": [/[^\n]/, "h6$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "h6", "symbols": ["h6$string$1", "_", "h6$ebnf$1"], "postprocess": function(d) { return wrap("h6", d[2].join("")); }},
+    {"name": "h6", "symbols": ["h6$string$1", "h6$ebnf$1"], "postprocess": function(d) { return wrap("h6", d[1].join("").trim()); }},
     {"name": "shortcode$ebnf$1", "symbols": []},
     {"name": "shortcode$ebnf$1", "symbols": [/[^`]/, "shortcode$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "shortcode", "symbols": [{"literal":"`"}, "shortcode$ebnf$1", {"literal":"`"}], "postprocess": shortcode},
