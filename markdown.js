@@ -60,9 +60,9 @@ function processLines(data, location, reject) {
         output.push(data[1][i][1]);
     }
 
-	for (let j = 0; j < data[2].length; ++j) {
-		output.push("<br/>");
-	}
+    for (let j = 0; j < data[2].length; ++j) {
+        output.push("<br/>");
+    }
 
     return output.join("\n");
 }
@@ -71,7 +71,7 @@ function sentence(data, location, reject) {
     let output = [ data[0] ];
 
     for (let i in data[1]) {
-		output.push(data[1][i].join(""));
+        output.push(data[1][i].join(""));
     }
 
     return output.join("");
@@ -120,6 +120,21 @@ var grammar = {
     {"name": "sentenceStart$ebnf$1", "symbols": [/[^\[*`#_\n-]/]},
     {"name": "sentenceStart$ebnf$1", "symbols": [/[^\[*`#_\n-]/, "sentenceStart$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "sentenceStart", "symbols": ["sentenceStart$ebnf$1"], "postprocess": function(d) { return d[0].join(""); }},
+    {"name": "sentenceBody", "symbols": [{"literal":"#"}, "sentenceStart"], "postprocess": function(d) { return d[0] + d[1]; }},
+    {"name": "sentenceBody$ebnf$1", "symbols": [/[ \t]/]},
+    {"name": "sentenceBody$ebnf$1", "symbols": [/[ \t]/, "sentenceBody$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "sentenceBody", "symbols": [{"literal":"*"}, "sentenceBody$ebnf$1"], "postprocess": function(d) { return d[0] + d[1].join(""); }},
+    {"name": "sentenceBody$string$1", "symbols": [{"literal":"*"}, {"literal":"*"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "sentenceBody$ebnf$2", "symbols": [/[ \t]/]},
+    {"name": "sentenceBody$ebnf$2", "symbols": [/[ \t]/, "sentenceBody$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "sentenceBody", "symbols": ["sentenceBody$string$1", "sentenceBody$ebnf$2"], "postprocess": function(d) { return d[0] + d[1].join(""); }},
+    {"name": "sentenceBody$ebnf$3", "symbols": [/[ \t]/]},
+    {"name": "sentenceBody$ebnf$3", "symbols": [/[ \t]/, "sentenceBody$ebnf$3"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "sentenceBody", "symbols": [{"literal":"_"}, "sentenceBody$ebnf$3"], "postprocess": function(d) { return d[0] + d[1].join(""); }},
+    {"name": "sentenceBody$string$2", "symbols": [{"literal":"_"}, {"literal":"_"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "sentenceBody$ebnf$4", "symbols": [/[ \t]/]},
+    {"name": "sentenceBody$ebnf$4", "symbols": [/[ \t]/, "sentenceBody$ebnf$4"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "sentenceBody", "symbols": ["sentenceBody$string$2", "sentenceBody$ebnf$4"], "postprocess": function(d) { return d[0] + d[1].join(""); }},
     {"name": "fragment", "symbols": ["shortcode"], "postprocess": id},
     {"name": "fragment", "symbols": ["italic"], "postprocess": id},
     {"name": "fragment", "symbols": ["strong"], "postprocess": id},

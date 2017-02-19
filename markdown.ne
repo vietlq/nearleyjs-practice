@@ -62,9 +62,9 @@ function processLines(data, location, reject) {
         output.push(data[1][i][1]);
     }
 
-	for (let j = 0; j < data[2].length; ++j) {
-		output.push("<br/>");
-	}
+    for (let j = 0; j < data[2].length; ++j) {
+        output.push("<br/>");
+    }
 
     return output.join("\n");
 }
@@ -73,7 +73,7 @@ function sentence(data, location, reject) {
     let output = [ data[0] ];
 
     for (let i in data[1]) {
-		output.push(data[1][i].join(""));
+        output.push(data[1][i].join(""));
     }
 
     return output.join("");
@@ -106,6 +106,13 @@ textOrFrag ->
     | sentenceStart {% id %}
 
 sentenceStart -> [^\[*`#_\n-]:+ {% function(d) { return d[0].join(""); } %}
+
+sentenceBody ->
+      "#" sentenceStart {% function(d) { return d[0] + d[1]; } %}
+    | "*" [ \t]:+ {% function(d) { return d[0] + d[1].join(""); } %}
+    | "**" [ \t]:+ {% function(d) { return d[0] + d[1].join(""); } %}
+    | "_" [ \t]:+ {% function(d) { return d[0] + d[1].join(""); } %}
+    | "__" [ \t]:+ {% function(d) { return d[0] + d[1].join(""); } %}
 
 fragment ->
       shortcode {% id %}
