@@ -22,10 +22,14 @@ function wrap(tag, content) {
 function shortcode(d) { return wrap("code", d[1].join("")); }
 
 //function italic(d) { return {italic: (d[1] + d[2].join(""))}; }
-function italic(d) { return wrap("em", d[1] + d[2].join("").trim()); }
+//function italic(d) { return wrap("em", d[1] + d[2].join("").trim()); }
+function italic1(d) { return wrap("em", d[1]); }
+function italic2(d) { return wrap("em", d[1] + d[2].join("").trim() + d[3]); }
 
 //function strong(d) { return {strong: (d[1] + d[2].join(""))}; }
-function strong(d) { return wrap("strong", d[1] + d[2].join("").trim()); }
+//function strong(d) { return wrap("strong", d[1] + d[2].join("").trim()); }
+function strong1(d) { return wrap("em", d[1]); }
+function strong2(d) { return wrap("em", d[1] + d[2].join("").trim() + d[3]); }
 
 //function link(d) { return {linkText: d[1].join(""), linkUrl: d[4].join("")}; }
 function link(d) { return '<a href="' + d[4].join("") + '">' + d[1].join("") + '</a>'; }
@@ -120,12 +124,16 @@ shortcode ->
       "`" [^`]:* "`" {% shortcode %}
 
 italic ->
-      "*" [^*\s] [^*]:* "*" {% italic %}
-    | "_" [^_\s] [^_]:* "_" {% italic %}
+      "*" [^*\s] "*" {% italic1 %}
+    | "_" [^_\s] "_" {% italic1 %}
+    | "*" [^*\s] [^*]:* [^*\s] "*" {% italic2 %}
+    | "_" [^_\s] [^_]:* [^_\s] "_" {% italic2 %}
 
 strong ->
-      "**" [^*\s] [^*]:* "**" {% strong %}
-    | "__" [^_\s] [^_]:* "__" {% strong %}
+      "**" [^*\s] "**" {% strong1 %}
+    | "__" [^_\s] "__" {% strong1 %}
+    | "**" [^*\s] [^*]:* [^*\s] "**" {% strong2 %}
+    | "__" [^_\s] [^_]:* [^_\s] "__" {% strong2 %}
 
 link ->
       "[" [^\]]:+ "]" "(" [^\)]:+ ")" {% link %}

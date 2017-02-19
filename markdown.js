@@ -20,10 +20,14 @@ function wrap(tag, content) {
 function shortcode(d) { return wrap("code", d[1].join("")); }
 
 //function italic(d) { return {italic: (d[1] + d[2].join(""))}; }
-function italic(d) { return wrap("em", d[1] + d[2].join("").trim()); }
+//function italic(d) { return wrap("em", d[1] + d[2].join("").trim()); }
+function italic1(d) { return wrap("em", d[1]); }
+function italic2(d) { return wrap("em", d[1] + d[2].join("").trim() + d[3]); }
 
 //function strong(d) { return {strong: (d[1] + d[2].join(""))}; }
-function strong(d) { return wrap("strong", d[1] + d[2].join("").trim()); }
+//function strong(d) { return wrap("strong", d[1] + d[2].join("").trim()); }
+function strong1(d) { return wrap("em", d[1]); }
+function strong2(d) { return wrap("em", d[1] + d[2].join("").trim() + d[3]); }
 
 //function link(d) { return {linkText: d[1].join(""), linkUrl: d[4].join("")}; }
 function link(d) { return '<a href="' + d[4].join("") + '">' + d[1].join("") + '</a>'; }
@@ -146,22 +150,30 @@ var grammar = {
     {"name": "shortcode$ebnf$1", "symbols": []},
     {"name": "shortcode$ebnf$1", "symbols": [/[^`]/, "shortcode$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "shortcode", "symbols": [{"literal":"`"}, "shortcode$ebnf$1", {"literal":"`"}], "postprocess": shortcode},
+    {"name": "italic", "symbols": [{"literal":"*"}, /[^*\s]/, {"literal":"*"}], "postprocess": italic1},
+    {"name": "italic", "symbols": [{"literal":"_"}, /[^_\s]/, {"literal":"_"}], "postprocess": italic1},
     {"name": "italic$ebnf$1", "symbols": []},
     {"name": "italic$ebnf$1", "symbols": [/[^*]/, "italic$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "italic", "symbols": [{"literal":"*"}, /[^*\s]/, "italic$ebnf$1", {"literal":"*"}], "postprocess": italic},
+    {"name": "italic", "symbols": [{"literal":"*"}, /[^*\s]/, "italic$ebnf$1", /[^*\s]/, {"literal":"*"}], "postprocess": italic2},
     {"name": "italic$ebnf$2", "symbols": []},
     {"name": "italic$ebnf$2", "symbols": [/[^_]/, "italic$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "italic", "symbols": [{"literal":"_"}, /[^_\s]/, "italic$ebnf$2", {"literal":"_"}], "postprocess": italic},
+    {"name": "italic", "symbols": [{"literal":"_"}, /[^_\s]/, "italic$ebnf$2", /[^_\s]/, {"literal":"_"}], "postprocess": italic2},
     {"name": "strong$string$1", "symbols": [{"literal":"*"}, {"literal":"*"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "strong$string$2", "symbols": [{"literal":"*"}, {"literal":"*"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "strong", "symbols": ["strong$string$1", /[^*\s]/, "strong$string$2"], "postprocess": strong1},
+    {"name": "strong$string$3", "symbols": [{"literal":"_"}, {"literal":"_"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "strong$string$4", "symbols": [{"literal":"_"}, {"literal":"_"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "strong", "symbols": ["strong$string$3", /[^_\s]/, "strong$string$4"], "postprocess": strong1},
+    {"name": "strong$string$5", "symbols": [{"literal":"*"}, {"literal":"*"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "strong$ebnf$1", "symbols": []},
     {"name": "strong$ebnf$1", "symbols": [/[^*]/, "strong$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "strong$string$2", "symbols": [{"literal":"*"}, {"literal":"*"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "strong", "symbols": ["strong$string$1", /[^*\s]/, "strong$ebnf$1", "strong$string$2"], "postprocess": strong},
-    {"name": "strong$string$3", "symbols": [{"literal":"_"}, {"literal":"_"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "strong$string$6", "symbols": [{"literal":"*"}, {"literal":"*"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "strong", "symbols": ["strong$string$5", /[^*\s]/, "strong$ebnf$1", /[^*\s]/, "strong$string$6"], "postprocess": strong2},
+    {"name": "strong$string$7", "symbols": [{"literal":"_"}, {"literal":"_"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "strong$ebnf$2", "symbols": []},
     {"name": "strong$ebnf$2", "symbols": [/[^_]/, "strong$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "strong$string$4", "symbols": [{"literal":"_"}, {"literal":"_"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "strong", "symbols": ["strong$string$3", /[^_\s]/, "strong$ebnf$2", "strong$string$4"], "postprocess": strong},
+    {"name": "strong$string$8", "symbols": [{"literal":"_"}, {"literal":"_"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "strong", "symbols": ["strong$string$7", /[^_\s]/, "strong$ebnf$2", /[^_\s]/, "strong$string$8"], "postprocess": strong2},
     {"name": "link$ebnf$1", "symbols": [/[^\]]/]},
     {"name": "link$ebnf$1", "symbols": [/[^\]]/, "link$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "link$ebnf$2", "symbols": [/[^\)]/]},
