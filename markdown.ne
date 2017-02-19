@@ -103,9 +103,9 @@ sentence -> textOrFrag (" \t":* textOrFrag):* {% sentence %}
 
 textOrFrag ->
       fragment {% id %}
-    | normalText {% id %}
+    | sentenceStart {% id %}
 
-normalText -> [^\[*`#_\n-]:+ {% function(d) { return d[0].join(""); } %}
+sentenceStart -> [^\[*`#_\n-]:+ {% function(d) { return d[0].join(""); } %}
 
 fragment ->
       shortcode {% id %}
