@@ -20,10 +20,10 @@ function wrap(tag, content) {
 function shortcode(d) { return wrap("code", d[1].join("")); }
 
 //function italic(d) { return {italic: (d[1] + d[2].join(""))}; }
-function italic(d) { return wrap("em", d[1] + d[2].join("")); }
+function italic(d) { return wrap("em", d[1] + d[2].join("").trim()); }
 
 //function strong(d) { return {strong: (d[1] + d[2].join(""))}; }
-function strong(d) { return wrap("strong", d[1] + d[2].join("")); }
+function strong(d) { return wrap("strong", d[1] + d[2].join("").trim()); }
 
 //function link(d) { return {linkText: d[1].join(""), linkUrl: d[4].join("")}; }
 function link(d) { return '<a href="' + d[4].join("") + '">' + d[1].join("") + '</a>'; }
@@ -113,8 +113,8 @@ var grammar = {
     {"name": "sentence", "symbols": ["textOrFrag", "sentence$ebnf$1"], "postprocess": sentence},
     {"name": "textOrFrag", "symbols": ["fragment"], "postprocess": id},
     {"name": "textOrFrag", "symbols": ["normalText"], "postprocess": id},
-    {"name": "normalText$ebnf$1", "symbols": [/[^*`#_\n-]/]},
-    {"name": "normalText$ebnf$1", "symbols": [/[^*`#_\n-]/, "normalText$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "normalText$ebnf$1", "symbols": [/[^\[*`#_\n-]/]},
+    {"name": "normalText$ebnf$1", "symbols": [/[^\[*`#_\n-]/, "normalText$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "normalText", "symbols": ["normalText$ebnf$1"], "postprocess": function(d) { return d[0].join(""); }},
     {"name": "fragment", "symbols": ["shortcode"], "postprocess": id},
     {"name": "fragment", "symbols": ["italic"], "postprocess": id},

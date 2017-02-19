@@ -22,10 +22,10 @@ function wrap(tag, content) {
 function shortcode(d) { return wrap("code", d[1].join("")); }
 
 //function italic(d) { return {italic: (d[1] + d[2].join(""))}; }
-function italic(d) { return wrap("em", d[1] + d[2].join("")); }
+function italic(d) { return wrap("em", d[1] + d[2].join("").trim()); }
 
 //function strong(d) { return {strong: (d[1] + d[2].join(""))}; }
-function strong(d) { return wrap("strong", d[1] + d[2].join("")); }
+function strong(d) { return wrap("strong", d[1] + d[2].join("").trim()); }
 
 //function link(d) { return {linkText: d[1].join(""), linkUrl: d[4].join("")}; }
 function link(d) { return '<a href="' + d[4].join("") + '">' + d[1].join("") + '</a>'; }
@@ -101,7 +101,7 @@ textOrFrag ->
       fragment {% id %}
     | normalText {% id %}
 
-normalText -> [^*`#_\n-]:+ {% function(d) { return d[0].join(""); } %}
+normalText -> [^\[*`#_\n-]:+ {% function(d) { return d[0].join(""); } %}
 
 fragment ->
       shortcode {% id %}
