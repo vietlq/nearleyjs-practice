@@ -32,7 +32,7 @@ function strong1(d) { return wrap("em", d[1]); }
 function strong2(d) { return wrap("em", d[1] + d[2].join("").trim() + d[3]); }
 
 //function link(d) { return {linkText: d[1].join(""), linkUrl: d[4].join("")}; }
-function link(d) { return '<a href="' + d[4].join("") + '">' + d[1].join("") + '</a>'; }
+function link(d) { return '<a href="' + d[3].join("") + '">' + d[1].join("") + '</a>'; }
 
 //function ulistitem(d) { return {ulistitem: d[2]}; }
 function ulistitem(d) { return wrap("li", d[2]); }
@@ -99,20 +99,32 @@ ulistitem ->
       " ":* "* " sentence {% ulistitem %}
     | " ":* "- " sentence {% ulistitem %}
 
-sentence -> textOrFrag (" \t":* textOrFrag):* {% sentence %}
+#sentence -> textOrFrag (" \t":* textOrFrag):* {% sentence %}
+
+sentence ->
+      sentenceStart sentenceBody
+    | textOrFrag (" \t":* textOrFrag):* {% sentence %}
+    | sentenceBody {% id %}
 
 textOrFrag ->
       fragment {% id %}
     | sentenceStart {% id %}
 
-sentenceStart -> [^\[*`#_\n-]:+ {% function(d) { return d[0].join(""); } %}
+sentenceStart ->
+      [^\[*`#_\n-]:+ {% function(d) { return d[0].join(""); } %}
+    | notFragment
 
 sentenceBody ->
-      "#" sentenceStart {% function(d) { return d[0] + d[1]; } %}
-    | "*" [ \t]:+ {% function(d) { return d[0] + d[1].join(""); } %}
-    | "**" [ \t]:+ {% function(d) { return d[0] + d[1].join(""); } %}
-    | "_" [ \t]:+ {% function(d) { return d[0] + d[1].join(""); } %}
-    | "__" [ \t]:+ {% function(d) { return d[0] + d[1].join(""); } %}
+      "#" sentenceStart:? {% function(d) { return d[0] + (d[1] || ""); } %}
+    | "*" [ \t]:* {% function(d) { return d[0] + d[1].join(""); } %}
+    | "**" [ \t]:* {% function(d) { return d[0] + d[1].join(""); } %}
+    | "_" [ \t]:* {% function(d) { return d[0] + d[1].join(""); } %}
+    | "__" [ \t]:* {% function(d) { return d[0] + d[1].join(""); } %}
+    | notFragment {% id %}
+
+notFragment ->
+      "[" [^\n\]]:* "]" [^\n\(]:+ {% function(d) { console.debug("notFragment:1"); return d[0] + d[1].join("") + d[2] + d[3].join(""); } %}
+    | "[" [^\n\]]:* "](" [^\n\)`*_]:+ "\n" {% function(d) { console.debug("notFragment:2"); return d[0] + d[1].join("") + d[2] + d[3].join(""); } %}
 
 fragment ->
       shortcode {% id %}
@@ -143,7 +155,7 @@ strong ->
     | "__" [^_\s] [^_]:* [^_\s] "__" {% strong2 %}
 
 link ->
-      "[" [^\n\]]:+ "]" "(" [^\n\)]:+ ")" {% link %}
+      "[" [^\n\]]:+ "](" [^\n\)]:+ ")" {% link %}
 
 _ ->
       [\s]:+ {% function() { return null; } %}
