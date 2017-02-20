@@ -37,7 +37,7 @@ var grammar = {
         }; } },
     {"name": "coor$ebnf$1", "symbols": [/[-+]/], "postprocess": id},
     {"name": "coor$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "coor", "symbols": ["coor$ebnf$1", "size"], "postprocess": function(d) { return (d[0] == "-") ? -d[1] : d[1]; }},
+    {"name": "coor", "symbols": ["coor$ebnf$1", "size"], "postprocess": function(d) { return (d[0] === "-") ? -d[1] : d[1]; }},
     {"name": "size", "symbols": [{"literal":"0"}], "postprocess": function(d) { return 0; }},
     {"name": "size$ebnf$1", "symbols": []},
     {"name": "size$ebnf$1", "symbols": [/[0-9]/, "size$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},

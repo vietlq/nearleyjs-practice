@@ -24,7 +24,7 @@ xywh -> "(" _ coor _ "," _ coor _ ")" _ size _ "x" _ size {% function(d) { retur
     x: d[2], y: d[6], w: d[10], h: d[14]
 }; } %}
 
-coor -> [-+]:? size {% function(d) { return (d[0] == "-") ? -d[1] : d[1]; } %}
+coor -> [-+]:? size {% function(d) { return (d[0] === "-") ? -d[1] : d[1]; } %}
 
 size ->
       "0" {% function(d) { return 0; } %}
