@@ -10,26 +10,18 @@ command ->
       crop {% id %}
     | copy {% id %}
     | cut {% id %}
+    | rect {% id %}
 
-crop -> _ "crop" _ "(" _ coor _ "," _ coor _ ")" _ size _ "x" _ size _ {% function(d) { return {
-    type: "crop",
-    args: {
-        x: d[5], y: d[9], w: d[13], h: d[17]
-    }
-}; } %}
+crop -> _ "crop" _ xywh _ {% function(d) { return { type: "crop", args: d[3] }; } %}
 
-copy -> _ "copy" _ "(" _ coor _ "," _ coor _ ")" _ size _ "x" _ size _ {% function(d) { return {
-    type: "copy",
-    args: {
-        x: d[5], y: d[9], w: d[13], h: d[17]
-    }
-}; } %}
+copy -> _ "copy" _ xywh _ {% function(d) { return { type: "copy", args: d[3] }; } %}
 
-cut -> _ "cut" _ "(" _ coor _ "," _ coor _ ")" _ size _ "x" _ size _ {% function(d) { return {
-    type: "cut",
-    args: {
-        x: d[5], y: d[9], w: d[13], h: d[17]
-    }
+cut -> _ "cut" _ xywh _ {% function(d) { return { type: "cut", args: d[3] }; } %}
+
+rect -> _ "rect" _ xywh _ {% function(d) { return { type: "rect", args: d[3] }; } %}
+
+xywh -> "(" _ coor _ "," _ coor _ ")" _ size _ "x" _ size {% function(d) { return {
+    x: d[2], y: d[6], w: d[10], h: d[14]
 }; } %}
 
 coor -> [-+]:? size {% function(d) { return (d[0] == "-") ? -d[1] : d[1]; } %}

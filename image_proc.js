@@ -23,26 +23,17 @@ var grammar = {
     {"name": "command", "symbols": ["crop"], "postprocess": id},
     {"name": "command", "symbols": ["copy"], "postprocess": id},
     {"name": "command", "symbols": ["cut"], "postprocess": id},
+    {"name": "command", "symbols": ["rect"], "postprocess": id},
     {"name": "crop$string$1", "symbols": [{"literal":"c"}, {"literal":"r"}, {"literal":"o"}, {"literal":"p"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "crop", "symbols": ["_", "crop$string$1", "_", {"literal":"("}, "_", "coor", "_", {"literal":","}, "_", "coor", "_", {"literal":")"}, "_", "size", "_", {"literal":"x"}, "_", "size", "_"], "postprocess":  function(d) { return {
-            type: "crop",
-            args: {
-                x: d[5], y: d[9], w: d[13], h: d[17]
-            }
-        }; } },
+    {"name": "crop", "symbols": ["_", "crop$string$1", "_", "xywh", "_"], "postprocess": function(d) { return { type: "crop", args: d[3] }; }},
     {"name": "copy$string$1", "symbols": [{"literal":"c"}, {"literal":"o"}, {"literal":"p"}, {"literal":"y"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "copy", "symbols": ["_", "copy$string$1", "_", {"literal":"("}, "_", "coor", "_", {"literal":","}, "_", "coor", "_", {"literal":")"}, "_", "size", "_", {"literal":"x"}, "_", "size", "_"], "postprocess":  function(d) { return {
-            type: "copy",
-            args: {
-                x: d[5], y: d[9], w: d[13], h: d[17]
-            }
-        }; } },
+    {"name": "copy", "symbols": ["_", "copy$string$1", "_", "xywh", "_"], "postprocess": function(d) { return { type: "copy", args: d[3] }; }},
     {"name": "cut$string$1", "symbols": [{"literal":"c"}, {"literal":"u"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
-    {"name": "cut", "symbols": ["_", "cut$string$1", "_", {"literal":"("}, "_", "coor", "_", {"literal":","}, "_", "coor", "_", {"literal":")"}, "_", "size", "_", {"literal":"x"}, "_", "size", "_"], "postprocess":  function(d) { return {
-            type: "cut",
-            args: {
-                x: d[5], y: d[9], w: d[13], h: d[17]
-            }
+    {"name": "cut", "symbols": ["_", "cut$string$1", "_", "xywh", "_"], "postprocess": function(d) { return { type: "cut", args: d[3] }; }},
+    {"name": "rect$string$1", "symbols": [{"literal":"r"}, {"literal":"e"}, {"literal":"c"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "rect", "symbols": ["_", "rect$string$1", "_", "xywh", "_"], "postprocess": function(d) { return { type: "rect", args: d[3] }; }},
+    {"name": "xywh", "symbols": [{"literal":"("}, "_", "coor", "_", {"literal":","}, "_", "coor", "_", {"literal":")"}, "_", "size", "_", {"literal":"x"}, "_", "size"], "postprocess":  function(d) { return {
+            x: d[2], y: d[6], w: d[10], h: d[14]
         }; } },
     {"name": "coor$ebnf$1", "symbols": [/[-+]/], "postprocess": id},
     {"name": "coor$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
