@@ -58,13 +58,13 @@ function minuteRange(d, l, reject) {
 }
 
 function minuteList(d) {
-    let mins = {};
-    mins[d[0]] = true;
+    let dict = {};
+    dict[d[0]] = true;
 
     for (let i in d[1]) {
-        mins[d[1][i][1]] = true;
+        dict[d[1][i][1]] = true;
     }
-    return {minutes: Object.keys(mins).map(toInt)};
+    return {minutes: Object.keys(dict).map(toInt)};
 }
 ////////////////////////////////////////////////////////////////
 function hour(d) {
@@ -93,27 +93,75 @@ function hourRange(d, l, reject) {
 }
 
 function hourList(d) {
-    let hrs = {};
-    hrs[d[0]] = true;
+    let dict = {};
+    dict[d[0]] = true;
 
     for (let i in d[1]) {
-        hrs[d[1][i][1]] = true;
+        dict[d[1][i][1]] = true;
     }
-    return {hours: Object.keys(hrs).map(toInt)};
+    return {hours: Object.keys(dict).map(toInt)};
+}
+////////////////////////////////////////////////////////////////
+function plusN(n) {
+    return function(i) {
+        return n + i;
+    }
+}
+
+function upToN(n) {
+    return function(i) {
+        return i <= n;
+    }
+}
+
+function dayOfMonth(d) {
+    return parseInt((d[0][0] || "") + d[0][1]);
+}
+
+function allDaysOfMonth(d) {
+    return {daysOfMonth: jumpRange(31).map(plusN(1))};
+}
+
+function dayOfMonthJump(d) {
+    let step = parseInt(d[1]);
+
+    return {daysOfMonth: jumpRange(31, step).map(plusN(step)).filter(upToN(31))};
+}
+
+function dayOfMonthRange(d, l, reject) {
+    let minNum = d[0];
+    let maxNum = d[2];
+
+    if (maxNum <= minNum) {
+        return reject;
+    }
+
+    return {daysOfMonth: numRange(minNum, maxNum)};
+}
+
+function dayOfMonthList(d) {
+    let dict = {};
+    dict[d[0]] = true;
+
+    for (let i in d[1]) {
+        dict[d[1][i][1]] = true;
+    }
+    return {daysOfMonth: Object.keys(dict).map(toInt)};
 }
 ////////////////////////////////////////////////////////////////
 function cronFunc(d) {
     return {
         cron: {
             minutes: d[0].minutes,
-            hours: d[2].hours
+            hours: d[2].hours,
+            daysOfMonth: d[4].daysOfMonth
         }
     }
 }
 
 var grammar = {
     ParserRules: [
-    {"name": "statement", "symbols": ["minutes", "_", "hours"], "postprocess": cronFunc},
+    {"name": "statement", "symbols": ["minutes", "_", "hours", "_", "daysOfMonth"], "postprocess": cronFunc},
     {"name": "minutes", "symbols": [{"literal":"*"}], "postprocess": minuteAll},
     {"name": "minutes$string$1", "symbols": [{"literal":"*"}, {"literal":"/"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "minutes$subexpression$1", "symbols": [/[23456]/]},
@@ -152,6 +200,25 @@ var grammar = {
     {"name": "hour$subexpression$1", "symbols": ["hour$subexpression$1$ebnf$1", /[0-9]/]},
     {"name": "hour$subexpression$1", "symbols": [{"literal":"2"}, /[0-3]/]},
     {"name": "hour", "symbols": ["hour$subexpression$1"], "postprocess": hour},
+    {"name": "daysOfMonth", "symbols": [{"literal":"*"}], "postprocess": allDaysOfMonth},
+    {"name": "daysOfMonth$string$1", "symbols": [{"literal":"*"}, {"literal":"/"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "daysOfMonth$subexpression$1", "symbols": [/[2356]/]},
+    {"name": "daysOfMonth$subexpression$1$string$1", "symbols": [{"literal":"1"}, {"literal":"0"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "daysOfMonth$subexpression$1", "symbols": ["daysOfMonth$subexpression$1$string$1"]},
+    {"name": "daysOfMonth$subexpression$1$string$2", "symbols": [{"literal":"1"}, {"literal":"5"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "daysOfMonth$subexpression$1", "symbols": ["daysOfMonth$subexpression$1$string$2"]},
+    {"name": "daysOfMonth", "symbols": ["daysOfMonth$string$1", "daysOfMonth$subexpression$1"], "postprocess": dayOfMonthJump},
+    {"name": "daysOfMonth", "symbols": ["dayOfMonth", {"literal":"-"}, "dayOfMonth"], "postprocess": dayOfMonthRange},
+    {"name": "daysOfMonth$ebnf$1", "symbols": []},
+    {"name": "daysOfMonth$ebnf$1$subexpression$1", "symbols": [{"literal":","}, "dayOfMonth"]},
+    {"name": "daysOfMonth$ebnf$1", "symbols": ["daysOfMonth$ebnf$1$subexpression$1", "daysOfMonth$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "daysOfMonth", "symbols": ["dayOfMonth", "daysOfMonth$ebnf$1"], "postprocess": dayOfMonthList},
+    {"name": "dayOfMonth$subexpression$1$ebnf$1", "symbols": [{"literal":"0"}], "postprocess": id},
+    {"name": "dayOfMonth$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "dayOfMonth$subexpression$1", "symbols": ["dayOfMonth$subexpression$1$ebnf$1", /[1-9]/]},
+    {"name": "dayOfMonth$subexpression$1", "symbols": [/[12]/, /[0-9]/]},
+    {"name": "dayOfMonth$subexpression$1", "symbols": [{"literal":"3"}, /[01]/]},
+    {"name": "dayOfMonth", "symbols": ["dayOfMonth$subexpression$1"], "postprocess": dayOfMonth},
     {"name": "_$ebnf$1", "symbols": [/[ \t]/]},
     {"name": "_$ebnf$1", "symbols": [/[ \t]/, "_$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "_", "symbols": ["_$ebnf$1"], "postprocess": function(d) { return null; }}

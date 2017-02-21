@@ -1,4 +1,4 @@
-statement -> minutes _ hours {% cronFunc %}
+statement -> minutes _ hours _ daysOfMonth {% cronFunc %}
 
 minutes ->
       "*" {% minuteAll %}
@@ -15,6 +15,14 @@ hours ->
     | hour ("," hour):* {% hourList %}
 
 hour -> ([01]:? [0-9] | "2" [0-3]) {% hour %}
+
+daysOfMonth ->
+      "*" {% allDaysOfMonth %}
+    | "*/" ([2356] | "10" | "15") {% dayOfMonthJump %}
+    | dayOfMonth "-" dayOfMonth {% dayOfMonthRange %}
+    | dayOfMonth ("," dayOfMonth):* {% dayOfMonthList %}
+
+dayOfMonth -> ("0":? [1-9] | [12] [0-9] | "3" [01]) {% dayOfMonth %}
 
 _ -> [ \t]:+ {% function(d) { return null; } %}
 
@@ -74,13 +82,13 @@ function minuteRange(d, l, reject) {
 }
 
 function minuteList(d) {
-    let mins = {};
-    mins[d[0]] = true;
+    let dict = {};
+    dict[d[0]] = true;
 
     for (let i in d[1]) {
-        mins[d[1][i][1]] = true;
+        dict[d[1][i][1]] = true;
     }
-    return {minutes: Object.keys(mins).map(toInt)};
+    return {minutes: Object.keys(dict).map(toInt)};
 }
 ////////////////////////////////////////////////////////////////
 function hour(d) {
@@ -109,20 +117,68 @@ function hourRange(d, l, reject) {
 }
 
 function hourList(d) {
-    let hrs = {};
-    hrs[d[0]] = true;
+    let dict = {};
+    dict[d[0]] = true;
 
     for (let i in d[1]) {
-        hrs[d[1][i][1]] = true;
+        dict[d[1][i][1]] = true;
     }
-    return {hours: Object.keys(hrs).map(toInt)};
+    return {hours: Object.keys(dict).map(toInt)};
+}
+////////////////////////////////////////////////////////////////
+function plusN(n) {
+    return function(i) {
+        return n + i;
+    }
+}
+
+function upToN(n) {
+    return function(i) {
+        return i <= n;
+    }
+}
+
+function dayOfMonth(d) {
+    return parseInt((d[0][0] || "") + d[0][1]);
+}
+
+function allDaysOfMonth(d) {
+    return {daysOfMonth: jumpRange(31).map(plusN(1))};
+}
+
+function dayOfMonthJump(d) {
+    let step = parseInt(d[1]);
+
+    return {daysOfMonth: jumpRange(31, step).map(plusN(step)).filter(upToN(31))};
+}
+
+function dayOfMonthRange(d, l, reject) {
+    let minNum = d[0];
+    let maxNum = d[2];
+
+    if (maxNum <= minNum) {
+        return reject;
+    }
+
+    return {daysOfMonth: numRange(minNum, maxNum)};
+}
+
+function dayOfMonthList(d) {
+    let dict = {};
+    dict[d[0]] = true;
+
+    for (let i in d[1]) {
+        dict[d[1][i][1]] = true;
+    }
+    return {daysOfMonth: Object.keys(dict).map(toInt)};
 }
 ////////////////////////////////////////////////////////////////
 function cronFunc(d) {
     return {
         cron: {
             minutes: d[0].minutes,
-            hours: d[2].hours
+            hours: d[2].hours,
+            daysOfMonth: d[4].daysOfMonth
         }
     }
 }
