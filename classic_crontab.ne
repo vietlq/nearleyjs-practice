@@ -6,21 +6,21 @@ minutes ->
     | minute "-" minute {% minuteRange %}
     | minute ("," minute):* {% minuteList %}
 
-minute -> [0-5]:? [0-9] {% minute %}
-
 hours ->
       "*" {% hourAll %}
     | "*/" ([23468] | "12") {% hourJump %}
     | hour "-" hour {% hourRange %}
     | hour ("," hour):* {% hourList %}
 
-hour -> ([01]:? [0-9] | "2" [0-3]) {% hour %}
-
 daysOfMonth ->
       "*" {% allDaysOfMonth %}
     | "*/" ([2356] | "10" | "15") {% dayOfMonthJump %}
     | dayOfMonth "-" dayOfMonth {% dayOfMonthRange %}
     | dayOfMonth ("," dayOfMonth):* {% dayOfMonthList %}
+
+minute -> [0-5]:? [0-9] {% minute %}
+
+hour -> ([01]:? [0-9] | "2" [0-3]) {% hour %}
 
 dayOfMonth -> ("0":? [1-9] | [12] [0-9] | "3" [01]) {% dayOfMonth %}
 
