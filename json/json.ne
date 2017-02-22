@@ -23,7 +23,21 @@ value ->
 
 number -> [0-9]:+ {% function(d) { return parseInt(d[0].join("")); } %}
 
-string -> "\"" [^"]:+ "\"" {% function(d) { return d[1].join("") } %}
+string -> "\"" validChar:* "\"" {% function(d) { return d[1].join("") } %}
+
+validChar ->
+      [^"\\] {% function(d) { return d[0]; } %}
+    | "\\\"" {% function(d) { return "\""; } %}
+    | "\\\\" {% function(d) { return "\\"; } %}
+    | "\\/" {% function(d) { return "/"; } %}
+    | "\\n" {% function(d) { return "\n"; } %}
+    | "\\b" {% function(d) { return "\b"; } %}
+    | "\\f" {% function(d) { return "\f"; } %}
+    | "\\r" {% function(d) { return "\r"; } %}
+    | "\\t" {% function(d) { return "\t"; } %}
+    | "\\u" hex hex hex hex {% unicodehex %}
+
+hex -> [0-9a-f] {% function(d) { return d[0]; } %}
 
 _ -> null | [\s]:+ {% function(d) { return null; } %}
 
@@ -53,6 +67,10 @@ function extractArray(d) {
     }
 
     return output;
+}
+
+function unicodehex(d) {
+    return String.fromCodePoint(parseInt(d[1]+d[2]+d[3]+d[4], 16));
 }
 
 %}

@@ -30,6 +30,10 @@ function extractArray(d) {
     return output;
 }
 
+function unicodehex(d) {
+    return String.fromCodePoint(parseInt(d[1]+d[2]+d[3]+d[4], 16));
+}
+
 var grammar = {
     ParserRules: [
     {"name": "json", "symbols": ["object"], "postprocess": id},
@@ -59,9 +63,29 @@ var grammar = {
     {"name": "number$ebnf$1", "symbols": [/[0-9]/]},
     {"name": "number$ebnf$1", "symbols": [/[0-9]/, "number$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "number", "symbols": ["number$ebnf$1"], "postprocess": function(d) { return parseInt(d[0].join("")); }},
-    {"name": "string$ebnf$1", "symbols": [/[^"]/]},
-    {"name": "string$ebnf$1", "symbols": [/[^"]/, "string$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "string$ebnf$1", "symbols": []},
+    {"name": "string$ebnf$1", "symbols": ["validChar", "string$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "string", "symbols": [{"literal":"\""}, "string$ebnf$1", {"literal":"\""}], "postprocess": function(d) { return d[1].join("") }},
+    {"name": "validChar", "symbols": [/[^"\\]/], "postprocess": function(d) { return d[0]; }},
+    {"name": "validChar$string$1", "symbols": [{"literal":"\\"}, {"literal":"\""}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "validChar", "symbols": ["validChar$string$1"], "postprocess": function(d) { return "\""; }},
+    {"name": "validChar$string$2", "symbols": [{"literal":"\\"}, {"literal":"\\"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "validChar", "symbols": ["validChar$string$2"], "postprocess": function(d) { return "\\"; }},
+    {"name": "validChar$string$3", "symbols": [{"literal":"\\"}, {"literal":"/"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "validChar", "symbols": ["validChar$string$3"], "postprocess": function(d) { return "/"; }},
+    {"name": "validChar$string$4", "symbols": [{"literal":"\\"}, {"literal":"n"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "validChar", "symbols": ["validChar$string$4"], "postprocess": function(d) { return "\n"; }},
+    {"name": "validChar$string$5", "symbols": [{"literal":"\\"}, {"literal":"b"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "validChar", "symbols": ["validChar$string$5"], "postprocess": function(d) { return "\b"; }},
+    {"name": "validChar$string$6", "symbols": [{"literal":"\\"}, {"literal":"f"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "validChar", "symbols": ["validChar$string$6"], "postprocess": function(d) { return "\f"; }},
+    {"name": "validChar$string$7", "symbols": [{"literal":"\\"}, {"literal":"r"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "validChar", "symbols": ["validChar$string$7"], "postprocess": function(d) { return "\r"; }},
+    {"name": "validChar$string$8", "symbols": [{"literal":"\\"}, {"literal":"t"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "validChar", "symbols": ["validChar$string$8"], "postprocess": function(d) { return "\t"; }},
+    {"name": "validChar$string$9", "symbols": [{"literal":"\\"}, {"literal":"u"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "validChar", "symbols": ["validChar$string$9", "hex", "hex", "hex", "hex"], "postprocess": unicodehex},
+    {"name": "hex", "symbols": [/[0-9a-f]/], "postprocess": function(d) { return d[0]; }},
     {"name": "_", "symbols": []},
     {"name": "_$ebnf$1", "symbols": [/[\s]/]},
     {"name": "_$ebnf$1", "symbols": [/[\s]/, "_$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
