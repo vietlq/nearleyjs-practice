@@ -53,8 +53,13 @@ function extractNumber(d) {
 
 var grammar = {
     ParserRules: [
-    {"name": "json", "symbols": ["object"], "postprocess": id},
-    {"name": "json", "symbols": ["array"], "postprocess": id},
+    {"name": "json$ebnf$1", "symbols": []},
+    {"name": "json$ebnf$1", "symbols": [/[\s]/, "json$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "json$subexpression$1", "symbols": ["object"]},
+    {"name": "json$subexpression$1", "symbols": ["array"]},
+    {"name": "json$ebnf$2", "symbols": []},
+    {"name": "json$ebnf$2", "symbols": [/[\s]/, "json$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "json", "symbols": ["json$ebnf$1", "json$subexpression$1", "json$ebnf$2"], "postprocess": function(d) { return d[1]; }},
     {"name": "object", "symbols": [{"literal":"{"}, "_", {"literal":"}"}], "postprocess": function(d) { return {}; }},
     {"name": "object$ebnf$1", "symbols": []},
     {"name": "object$ebnf$1$subexpression$1", "symbols": ["_", {"literal":","}, "_", "pair"]},
