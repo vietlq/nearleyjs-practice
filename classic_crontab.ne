@@ -1,4 +1,15 @@
-statement -> minutes _ hours _ daysOfMonth _ monthsOfYear _ daysOfWeek {% cronFunc %}
+classicCrontab -> "\n":* anyLine ("\n":+ anyLine):* "\n":* {% classicCrontab %}
+
+anyLine ->
+      cronStat {% id %}
+    | blankLine
+    | comment
+
+cronStat -> minutes _ hours _ daysOfMonth _ monthsOfYear _ daysOfWeek {% cronStat %}
+
+comment -> "#" [^\n]:* {% function(d) { return null; }%}
+
+blankLine -> _ {% function(d) { return null; }%}
 
 minutes ->
       "*" {% minuteAll %}
@@ -258,7 +269,7 @@ function dayOfWeekList(d) {
     return joinListWithKey('daysOfWeek')(d);
 }
 ////////////////////////////////////////////////////////////////
-function cronFunc(d) {
+function cronStat(d) {
     return {
         cron: {
             minutes: d[0].minutes,
@@ -268,6 +279,16 @@ function cronFunc(d) {
             daysOfWeek: d[8].daysOfWeek,
         }
     }
+}
+
+function classicCrontab(d) {
+    let output = [d[1]];
+
+    for (let i in d[2]) {
+        output.push(d[2][i][1]);
+    }
+
+    return output;
 }
 ////////////////////////////////////////////////////////////////
 %}
