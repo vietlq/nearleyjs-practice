@@ -3,32 +3,33 @@
 all: compile test generate graph
 
 compile:
-	nearleyc csscolor.ne -o csscolor.js
-	nearleyc parentheses.ne -o parentheses.js
-	nearleyc markdown.ne -o markdown.js
-	nearleyc image_proc.ne -o image_proc.js
-	nearleyc classic_crontab.ne -o classic_crontab.js
-	nearleyc json.ne -o json.js
+	make -C csscolor compile
+	make -C parentheses compile
+	make -C markdown compile
+	make -C image_proc compile
+	make -C classic_crontab compile
+	make -C json compile
 
 test:
-	nearley-test -i "#00ff00" csscolor.js
-	nearley-test -i "()" parentheses.js
-	nearley-test -i "(())" parentheses.js
-	nearley-test -i "(()())" parentheses.js
-	nearley-test -i "(()()((())))" parentheses.js
+	make -C csscolor test
+	make -C parentheses test
+	make -C markdown test
+	make -C image_proc test
+	make -C classic_crontab test
+	make -C json test
 
 generate:
-	nearley-unparse -n 10 csscolor.js
-	#nearley-unparse -n 10 parentheses.js
-	nearley-unparse -n 10 markdown.js
-	nearley-unparse -n 10 image_proc.js
-	nearley-unparse -n 10 classic_crontab.js
-	nearley-unparse -n 10 json.js
+	make -C csscolor generate
+	make -C parentheses generate
+	make -C markdown generate
+	make -C image_proc generate
+	make -C classic_crontab generate
+	make -C json generate
 
 graph:
-	nearley-railroad csscolor.ne -o csscolor.html
-	nearley-railroad parentheses.ne -o parentheses.html
-	nearley-railroad markdown.ne -o markdown.html
-	nearley-railroad image_proc.ne -o image_proc.html
-	nearley-railroad classic_crontab.ne -o classic_crontab.html
-	nearley-railroad json.ne -o json.html
+	make -C csscolor graph
+	make -C parentheses graph
+	make -C markdown graph
+	make -C image_proc graph
+	make -C classic_crontab graph
+	make -C json graph
