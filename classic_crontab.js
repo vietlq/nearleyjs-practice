@@ -173,6 +173,25 @@ function monthOfYearList(d) {
     return joinListWithKey('monthsOfYear')(d);
 }
 ////////////////////////////////////////////////////////////////
+function allDaysOfWeek(d) {
+    return {daysOfWeek: jumpRange(7)};
+}
+
+function dayOfWeekRange(d, l, reject) {
+    let minNum = d[0];
+    let maxNum = d[2];
+
+    if (maxNum <= minNum) {
+        return reject;
+    }
+
+    return {daysOfWeek: numRange(minNum, maxNum)};
+}
+
+function dayOfWeekList(d) {
+    return joinListWithKey('daysOfWeek')(d);
+}
+////////////////////////////////////////////////////////////////
 function cronFunc(d) {
     return {
         cron: {
@@ -180,13 +199,14 @@ function cronFunc(d) {
             hours: d[2].hours,
             daysOfMonth: d[4].daysOfMonth,
             monthsOfYear: d[6].monthsOfYear,
+            daysOfWeek: d[8].daysOfWeek,
         }
     }
 }
 ////////////////////////////////////////////////////////////////
 var grammar = {
     ParserRules: [
-    {"name": "statement", "symbols": ["minutes", "_", "hours", "_", "daysOfMonth", "_", "monthsOfYear"], "postprocess": cronFunc},
+    {"name": "statement", "symbols": ["minutes", "_", "hours", "_", "daysOfMonth", "_", "monthsOfYear", "_", "daysOfWeek"], "postprocess": cronFunc},
     {"name": "minutes", "symbols": [{"literal":"*"}], "postprocess": minuteAll},
     {"name": "minutes$string$1", "symbols": [{"literal":"*"}, {"literal":"/"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "minutes$subexpression$1", "symbols": [/[23456]/]},
@@ -243,6 +263,17 @@ var grammar = {
     {"name": "monthsOfYear$ebnf$2$subexpression$1", "symbols": [{"literal":","}, "monthOfYearLit"]},
     {"name": "monthsOfYear$ebnf$2", "symbols": ["monthsOfYear$ebnf$2$subexpression$1", "monthsOfYear$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "monthsOfYear", "symbols": ["monthOfYearLit", "monthsOfYear$ebnf$2"], "postprocess": monthOfYearList},
+    {"name": "daysOfWeek", "symbols": [{"literal":"*"}], "postprocess": allDaysOfWeek},
+    {"name": "daysOfWeek", "symbols": ["dayOfWeekNum", {"literal":"-"}, "dayOfWeekNum"], "postprocess": dayOfWeekRange},
+    {"name": "daysOfWeek$ebnf$1", "symbols": []},
+    {"name": "daysOfWeek$ebnf$1$subexpression$1", "symbols": [{"literal":","}, "dayOfWeekNum"]},
+    {"name": "daysOfWeek$ebnf$1", "symbols": ["daysOfWeek$ebnf$1$subexpression$1", "daysOfWeek$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "daysOfWeek", "symbols": ["dayOfWeekNum", "daysOfWeek$ebnf$1"], "postprocess": dayOfWeekList},
+    {"name": "daysOfWeek", "symbols": ["dayOfWeekLit", {"literal":"-"}, "dayOfWeekLit"], "postprocess": dayOfWeekRange},
+    {"name": "daysOfWeek$ebnf$2", "symbols": []},
+    {"name": "daysOfWeek$ebnf$2$subexpression$1", "symbols": [{"literal":","}, "dayOfWeekLit"]},
+    {"name": "daysOfWeek$ebnf$2", "symbols": ["daysOfWeek$ebnf$2$subexpression$1", "daysOfWeek$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "daysOfWeek", "symbols": ["dayOfWeekLit", "daysOfWeek$ebnf$2"], "postprocess": dayOfWeekList},
     {"name": "minute$ebnf$1", "symbols": [/[0-5]/], "postprocess": id},
     {"name": "minute$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "minute", "symbols": ["minute$ebnf$1", /[0-9]/], "postprocess": minute},
@@ -274,6 +305,14 @@ var grammar = {
     {"name": "monthOfYearLit", "symbols": [/[oO]/, /[cC]/, /[tT]/], "postprocess": function(d) { return 10; }},
     {"name": "monthOfYearLit", "symbols": [/[nN]/, /[oO]/, /[vV]/], "postprocess": function(d) { return 11; }},
     {"name": "monthOfYearLit", "symbols": [/[dD]/, /[eE]/, /[cC]/], "postprocess": function(d) { return 12; }},
+    {"name": "dayOfWeekNum", "symbols": [/[0-6]/], "postprocess": function(d) { return parseInt(d[0]); }},
+    {"name": "dayOfWeekLit", "symbols": [/[sS]/, /[uU]/, /[nN]/], "postprocess": function(d) { return 0; }},
+    {"name": "dayOfWeekLit", "symbols": [/[mM]/, /[oO]/, /[nN]/], "postprocess": function(d) { return 1; }},
+    {"name": "dayOfWeekLit", "symbols": [/[tT]/, /[uU]/, /[eE]/], "postprocess": function(d) { return 2; }},
+    {"name": "dayOfWeekLit", "symbols": [/[wW]/, /[eE]/, /[dD]/], "postprocess": function(d) { return 3; }},
+    {"name": "dayOfWeekLit", "symbols": [/[tT]/, /[hH]/, /[uU]/], "postprocess": function(d) { return 4; }},
+    {"name": "dayOfWeekLit", "symbols": [/[fF]/, /[rR]/, /[iI]/], "postprocess": function(d) { return 5; }},
+    {"name": "dayOfWeekLit", "symbols": [/[sS]/, /[aA]/, /[tT]/], "postprocess": function(d) { return 6; }},
     {"name": "_$ebnf$1", "symbols": [/[ \t]/]},
     {"name": "_$ebnf$1", "symbols": [/[ \t]/, "_$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "_", "symbols": ["_$ebnf$1"], "postprocess": function(d) { return null; }}

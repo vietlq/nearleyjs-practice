@@ -1,4 +1,4 @@
-statement -> minutes _ hours _ daysOfMonth _ monthsOfYear {% cronFunc %}
+statement -> minutes _ hours _ daysOfMonth _ monthsOfYear _ daysOfWeek {% cronFunc %}
 
 minutes ->
       "*" {% minuteAll %}
@@ -26,6 +26,13 @@ monthsOfYear ->
     | monthOfYearLit "-" monthOfYearLit {% monthOfYearRange %}
     | monthOfYearLit ("," monthOfYearLit):* {% monthOfYearList %}
 
+daysOfWeek ->
+      "*" {% allDaysOfWeek %}
+    | dayOfWeekNum "-" dayOfWeekNum {% dayOfWeekRange %}
+    | dayOfWeekNum ("," dayOfWeekNum):* {% dayOfWeekList %}
+    | dayOfWeekLit "-" dayOfWeekLit {% dayOfWeekRange %}
+    | dayOfWeekLit ("," dayOfWeekLit):* {% dayOfWeekList %}
+
 minute -> [0-5]:? [0-9] {% minute %}
 
 hour -> ([01]:? [0-9] | "2" [0-3]) {% hour %}
@@ -47,6 +54,17 @@ monthOfYearLit ->
     | [oO] [cC] [tT] {% function(d) { return 10; } %}
     | [nN] [oO] [vV] {% function(d) { return 11; } %}
     | [dD] [eE] [cC] {% function(d) { return 12; } %}
+
+dayOfWeekNum -> [0-6] {% function(d) { return parseInt(d[0]); } %}
+
+dayOfWeekLit ->
+      [sS] [uU] [nN] {% function(d) { return 0; } %}
+    | [mM] [oO] [nN] {% function(d) { return 1; } %}
+    | [tT] [uU] [eE] {% function(d) { return 2; } %}
+    | [wW] [eE] [dD] {% function(d) { return 3; } %}
+    | [tT] [hH] [uU] {% function(d) { return 4; } %}
+    | [fF] [rR] [iI] {% function(d) { return 5; } %}
+    | [sS] [aA] [tT] {% function(d) { return 6; } %}
 
 _ -> [ \t]:+ {% function(d) { return null; } %}
 
@@ -221,6 +239,25 @@ function monthOfYearList(d) {
     return joinListWithKey('monthsOfYear')(d);
 }
 ////////////////////////////////////////////////////////////////
+function allDaysOfWeek(d) {
+    return {daysOfWeek: jumpRange(7)};
+}
+
+function dayOfWeekRange(d, l, reject) {
+    let minNum = d[0];
+    let maxNum = d[2];
+
+    if (maxNum <= minNum) {
+        return reject;
+    }
+
+    return {daysOfWeek: numRange(minNum, maxNum)};
+}
+
+function dayOfWeekList(d) {
+    return joinListWithKey('daysOfWeek')(d);
+}
+////////////////////////////////////////////////////////////////
 function cronFunc(d) {
     return {
         cron: {
@@ -228,6 +265,7 @@ function cronFunc(d) {
             hours: d[2].hours,
             daysOfMonth: d[4].daysOfMonth,
             monthsOfYear: d[6].monthsOfYear,
+            daysOfWeek: d[8].daysOfWeek,
         }
     }
 }
