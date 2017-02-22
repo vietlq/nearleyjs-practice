@@ -192,7 +192,7 @@ function dayOfWeekList(d) {
     return joinListWithKey('daysOfWeek')(d);
 }
 ////////////////////////////////////////////////////////////////
-function cronFunc(d) {
+function cronStat(d) {
     return {
         cron: {
             minutes: d[0].minutes,
@@ -203,10 +203,37 @@ function cronFunc(d) {
         }
     }
 }
+
+function classicCrontab(d) {
+    let output = [d[1]];
+
+    for (let i in d[2]) {
+        output.push(d[2][i][1]);
+    }
+
+    return output;
+}
 ////////////////////////////////////////////////////////////////
 var grammar = {
     ParserRules: [
-    {"name": "statement", "symbols": ["minutes", "_", "hours", "_", "daysOfMonth", "_", "monthsOfYear", "_", "daysOfWeek"], "postprocess": cronFunc},
+    {"name": "classicCrontab$ebnf$1", "symbols": []},
+    {"name": "classicCrontab$ebnf$1", "symbols": [{"literal":"\n"}, "classicCrontab$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "classicCrontab$ebnf$2", "symbols": []},
+    {"name": "classicCrontab$ebnf$2$subexpression$1$ebnf$1", "symbols": [{"literal":"\n"}]},
+    {"name": "classicCrontab$ebnf$2$subexpression$1$ebnf$1", "symbols": [{"literal":"\n"}, "classicCrontab$ebnf$2$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "classicCrontab$ebnf$2$subexpression$1", "symbols": ["classicCrontab$ebnf$2$subexpression$1$ebnf$1", "anyLine"]},
+    {"name": "classicCrontab$ebnf$2", "symbols": ["classicCrontab$ebnf$2$subexpression$1", "classicCrontab$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "classicCrontab$ebnf$3", "symbols": []},
+    {"name": "classicCrontab$ebnf$3", "symbols": [{"literal":"\n"}, "classicCrontab$ebnf$3"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "classicCrontab", "symbols": ["classicCrontab$ebnf$1", "anyLine", "classicCrontab$ebnf$2", "classicCrontab$ebnf$3"], "postprocess": classicCrontab},
+    {"name": "anyLine", "symbols": ["cronStat"], "postprocess": id},
+    {"name": "anyLine", "symbols": ["blankLine"]},
+    {"name": "anyLine", "symbols": ["comment"]},
+    {"name": "cronStat", "symbols": ["minutes", "_", "hours", "_", "daysOfMonth", "_", "monthsOfYear", "_", "daysOfWeek"], "postprocess": cronStat},
+    {"name": "comment$ebnf$1", "symbols": []},
+    {"name": "comment$ebnf$1", "symbols": [/[^\n]/, "comment$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "comment", "symbols": [{"literal":"#"}, "comment$ebnf$1"], "postprocess": function(d) { return null; }},
+    {"name": "blankLine", "symbols": ["_"], "postprocess": function(d) { return null; }},
     {"name": "minutes", "symbols": [{"literal":"*"}], "postprocess": minuteAll},
     {"name": "minutes$string$1", "symbols": [{"literal":"*"}, {"literal":"/"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "minutes$subexpression$1", "symbols": [/[23456]/]},
@@ -317,7 +344,7 @@ var grammar = {
     {"name": "_$ebnf$1", "symbols": [/[ \t]/, "_$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "_", "symbols": ["_$ebnf$1"], "postprocess": function(d) { return null; }}
 ]
-  , ParserStart: "statement"
+  , ParserStart: "classicCrontab"
 }
 if (typeof module !== 'undefined'&& typeof module.exports !== 'undefined') {
    module.exports = grammar;
