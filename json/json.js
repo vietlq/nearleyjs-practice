@@ -34,6 +34,11 @@ function unicodehex(d) {
     return String.fromCodePoint(parseInt(d[1]+d[2]+d[3]+d[4], 16));
 }
 
+function extractNumber(d) {
+    let value = (d[0] || '') + d[1] + (d[2] || '') + (d[3] || '');
+    return parseFloat(value);
+}
+
 var grammar = {
     ParserRules: [
     {"name": "json", "symbols": ["object"], "postprocess": id},
@@ -60,9 +65,26 @@ var grammar = {
     {"name": "value", "symbols": ["value$string$2"], "postprocess": function(d) { return false; }},
     {"name": "value$string$3", "symbols": [{"literal":"n"}, {"literal":"u"}, {"literal":"l"}, {"literal":"l"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "value", "symbols": ["value$string$3"], "postprocess": function(d) { return null; }},
-    {"name": "number$ebnf$1", "symbols": [/[0-9]/]},
-    {"name": "number$ebnf$1", "symbols": [/[0-9]/, "number$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "number", "symbols": ["number$ebnf$1"], "postprocess": function(d) { return parseInt(d[0].join("")); }},
+    {"name": "number$ebnf$1", "symbols": [{"literal":"-"}], "postprocess": id},
+    {"name": "number$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "number$subexpression$1", "symbols": [{"literal":"0"}]},
+    {"name": "number$subexpression$1", "symbols": ["intPart"]},
+    {"name": "number$ebnf$2", "symbols": ["fracPart"], "postprocess": id},
+    {"name": "number$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "number$ebnf$3", "symbols": ["expPart"], "postprocess": id},
+    {"name": "number$ebnf$3", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "number", "symbols": ["number$ebnf$1", "number$subexpression$1", "number$ebnf$2", "number$ebnf$3"], "postprocess": extractNumber},
+    {"name": "intPart$ebnf$1", "symbols": []},
+    {"name": "intPart$ebnf$1", "symbols": [/[0-9]/, "intPart$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "intPart", "symbols": [/[1-9]/, "intPart$ebnf$1"], "postprocess": function(d) { return d[0] + d[1].join(""); }},
+    {"name": "fracPart$ebnf$1", "symbols": []},
+    {"name": "fracPart$ebnf$1", "symbols": [/[0-9]/, "fracPart$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "fracPart", "symbols": [{"literal":"."}, "fracPart$ebnf$1"], "postprocess": function(d) { return d[0] + d[1].join(""); }},
+    {"name": "expPart$ebnf$1", "symbols": [/[+-]/], "postprocess": id},
+    {"name": "expPart$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "expPart$ebnf$2", "symbols": []},
+    {"name": "expPart$ebnf$2", "symbols": [/[0-9]/, "expPart$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "expPart", "symbols": [/[eE]/, "expPart$ebnf$1", "expPart$ebnf$2"], "postprocess": function(d) { return d[0] + (d[1] || '') + d[2].join(""); }},
     {"name": "string$ebnf$1", "symbols": []},
     {"name": "string$ebnf$1", "symbols": ["validChar", "string$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "string", "symbols": [{"literal":"\""}, "string$ebnf$1", {"literal":"\""}], "postprocess": function(d) { return d[1].join("") }},

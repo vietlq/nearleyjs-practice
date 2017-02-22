@@ -21,7 +21,13 @@ value ->
     | "false" {% function(d) { return false; } %}
     | "null" {% function(d) { return null; } %}
 
-number -> [0-9]:+ {% function(d) { return parseInt(d[0].join("")); } %}
+number -> "-":? ("0" | intPart) fracPart:? expPart:? {% extractNumber %}
+
+intPart -> [1-9] [0-9]:* {% function(d) { return d[0] + d[1].join(""); } %}
+
+fracPart -> "." [0-9]:* {% function(d) { return d[0] + d[1].join(""); } %}
+
+expPart -> [eE] [+-]:? [0-9]:* {% function(d) { return d[0] + (d[1] || '') + d[2].join(""); } %}
 
 string -> "\"" validChar:* "\"" {% function(d) { return d[1].join("") } %}
 
@@ -71,6 +77,11 @@ function extractArray(d) {
 
 function unicodehex(d) {
     return String.fromCodePoint(parseInt(d[1]+d[2]+d[3]+d[4], 16));
+}
+
+function extractNumber(d) {
+    let value = (d[0] || '') + d[1] + (d[2] || '') + (d[3] || '');
+    return parseFloat(value);
 }
 
 %}
