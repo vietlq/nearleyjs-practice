@@ -8,6 +8,7 @@ compile:
 	nearleyc markdown.ne -o markdown.js
 	nearleyc image_proc.ne -o image_proc.js
 	nearleyc classic_crontab.ne -o classic_crontab.js
+	nearleyc json.ne -o json.js
 
 test:
 	nearley-test -i "#00ff00" csscolor.js
@@ -22,6 +23,7 @@ generate:
 	nearley-unparse -n 10 markdown.js
 	nearley-unparse -n 10 image_proc.js
 	nearley-unparse -n 10 classic_crontab.js
+	nearley-unparse -n 10 json.js
 
 graph:
 	nearley-railroad csscolor.ne -o csscolor.html
@@ -29,3 +31,4 @@ graph:
 	nearley-railroad markdown.ne -o markdown.html
 	nearley-railroad image_proc.ne -o image_proc.html
 	nearley-railroad classic_crontab.ne -o classic_crontab.html
+	nearley-railroad json.ne -o json.html
