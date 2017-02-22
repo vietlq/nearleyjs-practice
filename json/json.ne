@@ -44,7 +44,7 @@ validChar ->
     | "\\t" {% function(d) { return d[0]; } %}
     | "\\u" hex hex hex hex {% unicodehex %}
 
-hex -> [0-9a-f] {% function(d) { return d[0]; } %}
+hex -> [0-9a-fA-F] {% function(d) { return d[0]; } %}
 
 _ -> null | [\s]:+ {% function(d) { return null; } %}
 
@@ -81,7 +81,7 @@ function unicodehex(d) {
 
     // Non-printable characters
     if (codePoint < 32) {
-        return d.join("");
+        return d.join("").toLowerCase();
     }
 
     // Handle '\\'

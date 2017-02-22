@@ -35,7 +35,7 @@ function unicodehex(d) {
 
     // Non-printable characters
     if (codePoint < 32) {
-        return d.join("");
+        return d.join("").toLowerCase();
     }
 
     // Handle '\\'
@@ -124,7 +124,7 @@ var grammar = {
     {"name": "validChar", "symbols": ["validChar$string$8"], "postprocess": function(d) { return d[0]; }},
     {"name": "validChar$string$9", "symbols": [{"literal":"\\"}, {"literal":"u"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "validChar", "symbols": ["validChar$string$9", "hex", "hex", "hex", "hex"], "postprocess": unicodehex},
-    {"name": "hex", "symbols": [/[0-9a-f]/], "postprocess": function(d) { return d[0]; }},
+    {"name": "hex", "symbols": [/[0-9a-fA-F]/], "postprocess": function(d) { return d[0]; }},
     {"name": "_", "symbols": []},
     {"name": "_$ebnf$1", "symbols": [/[\s]/]},
     {"name": "_$ebnf$1", "symbols": [/[\s]/, "_$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
