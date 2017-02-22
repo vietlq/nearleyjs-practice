@@ -5,7 +5,7 @@ anyLine ->
     | blankLine
     | comment
 
-cronStat -> minutes _ hours _ daysOfMonth _ monthsOfYear _ daysOfWeek _ {% cronStat %}
+cronStat -> minutes _ hours _ daysOfMonth _ monthsOfYear _ daysOfWeek [ \t]:* {% cronStat %}
 
 comment -> "#" [^\n]:* {% function(d) { return null; }%}
 
