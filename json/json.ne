@@ -1,4 +1,5 @@
 # http://www.json.org/
+# http://www.asciitable.com/
 
 json -> object {% id %} | array {% id %}
 
@@ -7,10 +8,6 @@ object -> "{" _ "}" {% function(d) { return {}; } %}
 
 array -> "[" _ "]" {% function(d) { return []; } %}
     | "[" _ value (_ "," _ value):* _ "]" {% extractArray %}
-
-pair -> key _ ":" _ value {% function(d) { return [d[0], d[4]]; } %}
-
-key -> string {% id %}
 
 value ->
       object {% id %}
@@ -23,24 +20,28 @@ value ->
 
 number -> "-":? ("0" | intPart) fracPart:? expPart:? {% extractNumber %}
 
+string -> "\"" validChar:* "\"" {% function(d) { return d[1].join("") } %}
+
+pair -> key _ ":" _ value {% function(d) { return [d[0], d[4]]; } %}
+
+key -> string {% id %}
+
 intPart -> [1-9] [0-9]:* {% function(d) { return d[0] + d[1].join(""); } %}
 
 fracPart -> "." [0-9]:* {% function(d) { return d[0] + d[1].join(""); } %}
 
 expPart -> [eE] [+-]:? [0-9]:* {% function(d) { return d[0] + (d[1] || '') + d[2].join(""); } %}
 
-string -> "\"" validChar:* "\"" {% function(d) { return d[1].join("") } %}
-
 validChar ->
       [^"\\] {% function(d) { return d[0]; } %}
-    | "\\\"" {% function(d) { return "\""; } %}
-    | "\\\\" {% function(d) { return "\\"; } %}
+    | "\\\"" {% function(d) { return d[0]; } %}
+    | "\\\\" {% function(d) { return d[0]; } %}
     | "\\/" {% function(d) { return "/"; } %}
-    | "\\n" {% function(d) { return "\n"; } %}
-    | "\\b" {% function(d) { return "\b"; } %}
-    | "\\f" {% function(d) { return "\f"; } %}
-    | "\\r" {% function(d) { return "\r"; } %}
-    | "\\t" {% function(d) { return "\t"; } %}
+    | "\\n" {% function(d) { return d[0]; } %}
+    | "\\b" {% function(d) { return d[0]; } %}
+    | "\\f" {% function(d) { return d[0]; } %}
+    | "\\r" {% function(d) { return d[0]; } %}
+    | "\\t" {% function(d) { return d[0]; } %}
     | "\\u" hex hex hex hex {% unicodehex %}
 
 hex -> [0-9a-f] {% function(d) { return d[0]; } %}
@@ -76,7 +77,19 @@ function extractArray(d) {
 }
 
 function unicodehex(d) {
-    return String.fromCodePoint(parseInt(d[1]+d[2]+d[3]+d[4], 16));
+    let codePoint = parseInt(d[1]+d[2]+d[3]+d[4], 16);
+
+    // Non-printable characters
+    if (codePoint < 32) {
+        return d.join("");
+    }
+
+    // Handle '\\'
+    if (codePoint == 92) {
+        return "\\\\";
+    }
+
+    return String.fromCodePoint(codePoint);
 }
 
 function extractNumber(d) {
