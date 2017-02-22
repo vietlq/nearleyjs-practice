@@ -281,11 +281,21 @@ function cronStat(d) {
     }
 }
 
+function isValidStat(obj) {
+    return (obj && obj.cron);
+}
+
 function classicCrontab(d) {
-    let output = [d[1]];
+    let output = [];
+
+    if (isValidStat(d[1])) {
+        output.push(d[1]);
+    }
 
     for (let i in d[2]) {
-        output.push(d[2][i][1]);
+        if (isValidStat(d[2][i][1])) {
+            output.push(d[2][i][1]);
+        }
     }
 
     return output;
