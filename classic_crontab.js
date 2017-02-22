@@ -205,7 +205,8 @@ function cronStat(d) {
 }
 
 function isValidStat(obj) {
-    return (obj && obj.cron);
+    //return (obj && obj.cron);
+    return obj;
 }
 
 function classicCrontab(d) {
@@ -237,8 +238,8 @@ var grammar = {
     {"name": "classicCrontab$ebnf$3", "symbols": [{"literal":"\n"}, "classicCrontab$ebnf$3"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "classicCrontab", "symbols": ["classicCrontab$ebnf$1", "anyLine", "classicCrontab$ebnf$2", "classicCrontab$ebnf$3"], "postprocess": classicCrontab},
     {"name": "anyLine", "symbols": ["cronStat"], "postprocess": id},
-    {"name": "anyLine", "symbols": ["blankLine"]},
-    {"name": "anyLine", "symbols": ["comment"]},
+    {"name": "anyLine", "symbols": ["blankLine"], "postprocess": function(d) { return null; }},
+    {"name": "anyLine", "symbols": ["comment"], "postprocess": function(d) { return null; }},
     {"name": "cronStat$ebnf$1", "symbols": []},
     {"name": "cronStat$ebnf$1", "symbols": [/[ \t]/, "cronStat$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "cronStat", "symbols": ["minutes", "_", "hours", "_", "daysOfMonth", "_", "monthsOfYear", "_", "daysOfWeek", "cronStat$ebnf$1"], "postprocess": cronStat},

@@ -2,8 +2,8 @@ classicCrontab -> "\n":* anyLine ("\n":+ anyLine):* "\n":* {% classicCrontab %}
 
 anyLine ->
       cronStat {% id %}
-    | blankLine
-    | comment
+    | blankLine {% function(d) { return null; }%}
+    | comment {% function(d) { return null; }%}
 
 cronStat -> minutes _ hours _ daysOfMonth _ monthsOfYear _ daysOfWeek [ \t]:* {% cronStat %}
 
@@ -282,7 +282,8 @@ function cronStat(d) {
 }
 
 function isValidStat(obj) {
-    return (obj && obj.cron);
+    //return (obj && obj.cron);
+    return obj;
 }
 
 function classicCrontab(d) {
