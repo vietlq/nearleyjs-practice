@@ -2,6 +2,34 @@
 // http://github.com/Hardmath123/nearley
 (function () {
 function id(x) {return x[0]; }
+
+
+function extractPair(kv, output) {
+    if(kv[0]) { output[kv[0]] = kv[1]; }
+}
+
+function extractObject(d) {
+    let output = {};
+
+    extractPair(d[2], output);
+
+    for (let i in d[3]) {
+        extractPair(d[3][i][3], output);
+    }
+
+    return output;
+}
+
+function extractArray(d) {
+    let output = [d[2]];
+
+    for (let i in d[3]) {
+        output.push(d[3][i][3]);
+    }
+
+    return output;
+}
+
 var grammar = {
     ParserRules: [
     {"name": "json", "symbols": ["object"], "postprocess": id},
@@ -10,36 +38,12 @@ var grammar = {
     {"name": "object$ebnf$1", "symbols": []},
     {"name": "object$ebnf$1$subexpression$1", "symbols": ["_", {"literal":","}, "_", "pair"]},
     {"name": "object$ebnf$1", "symbols": ["object$ebnf$1$subexpression$1", "object$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "object$ebnf$2$subexpression$1", "symbols": [{"literal":","}, "_"]},
-    {"name": "object$ebnf$2", "symbols": ["object$ebnf$2$subexpression$1"], "postprocess": id},
-    {"name": "object$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "object", "symbols": [{"literal":"{"}, "_", "pair", "object$ebnf$1", "_", "object$ebnf$2", {"literal":"}"}], "postprocess":  function(d) {
-            let output = {};
-        
-            if(d[2][0]) { output[d[2][0]] = d[2][1]; }
-        
-            for (let i in d[3]) {
-                if(d[3][i][3][0]) { output[d[3][i][3][0]] = d[3][i][3][1]; }
-            }
-        
-            return output;
-        } },
+    {"name": "object", "symbols": [{"literal":"{"}, "_", "pair", "object$ebnf$1", "_", {"literal":"}"}], "postprocess": extractObject},
     {"name": "array", "symbols": [{"literal":"["}, "_", {"literal":"]"}], "postprocess": function(d) { return []; }},
     {"name": "array$ebnf$1", "symbols": []},
     {"name": "array$ebnf$1$subexpression$1", "symbols": ["_", {"literal":","}, "_", "value"]},
     {"name": "array$ebnf$1", "symbols": ["array$ebnf$1$subexpression$1", "array$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "array$ebnf$2$subexpression$1", "symbols": [{"literal":","}, "_"]},
-    {"name": "array$ebnf$2", "symbols": ["array$ebnf$2$subexpression$1"], "postprocess": id},
-    {"name": "array$ebnf$2", "symbols": [], "postprocess": function(d) {return null;}},
-    {"name": "array", "symbols": [{"literal":"["}, "_", "value", "array$ebnf$1", "_", "array$ebnf$2", {"literal":"]"}], "postprocess":  function(d) {
-            let output = [d[2]];
-        
-            for (let i in d[3]) {
-                output.push(d[3][i][3]);
-            }
-        
-            return output;
-        } },
+    {"name": "array", "symbols": [{"literal":"["}, "_", "value", "array$ebnf$1", "_", {"literal":"]"}], "postprocess": extractArray},
     {"name": "pair", "symbols": ["key", "_", {"literal":":"}, "_", "value"], "postprocess": function(d) { return [d[0], d[4]]; }},
     {"name": "key", "symbols": ["string"], "postprocess": id},
     {"name": "value", "symbols": ["object"], "postprocess": id},
