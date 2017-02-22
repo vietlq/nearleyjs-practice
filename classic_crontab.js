@@ -229,7 +229,7 @@ var grammar = {
     {"name": "anyLine", "symbols": ["cronStat"], "postprocess": id},
     {"name": "anyLine", "symbols": ["blankLine"]},
     {"name": "anyLine", "symbols": ["comment"]},
-    {"name": "cronStat", "symbols": ["minutes", "_", "hours", "_", "daysOfMonth", "_", "monthsOfYear", "_", "daysOfWeek"], "postprocess": cronStat},
+    {"name": "cronStat", "symbols": ["minutes", "_", "hours", "_", "daysOfMonth", "_", "monthsOfYear", "_", "daysOfWeek", "_"], "postprocess": cronStat},
     {"name": "comment$ebnf$1", "symbols": []},
     {"name": "comment$ebnf$1", "symbols": [/[^\n]/, "comment$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "comment", "symbols": [{"literal":"#"}, "comment$ebnf$1"], "postprocess": function(d) { return null; }},
