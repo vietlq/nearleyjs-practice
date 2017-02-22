@@ -3,7 +3,7 @@
 (function () {
 function id(x) {return x[0]; }
 
-
+////////////////////////////////////////////////////////////////
 function toInt(n) {
     return parseInt(n);
 }
@@ -31,6 +31,31 @@ function numRange(minNum, maxNum) {
     return output;
 }
 
+function plusN(n) {
+    return function(i) {
+        return n + i;
+    }
+}
+
+function upToN(n) {
+    return function(i) {
+        return i <= n;
+    }
+}
+
+function joinListWithKey(key) {
+    return function(d) {
+        let dict = {};
+        dict[d[0]] = true;
+
+        for (let i in d[1]) {
+            dict[d[1][i][1]] = true;
+        }
+        let output = {};
+        output[key] = Object.keys(dict).map(toInt);
+        return output;
+    }
+}
 ////////////////////////////////////////////////////////////////
 function minute(d) {
     return parseInt((d[0] | "") + d[1]);
@@ -58,13 +83,7 @@ function minuteRange(d, l, reject) {
 }
 
 function minuteList(d) {
-    let dict = {};
-    dict[d[0]] = true;
-
-    for (let i in d[1]) {
-        dict[d[1][i][1]] = true;
-    }
-    return {minutes: Object.keys(dict).map(toInt)};
+    return joinListWithKey('minutes')(d);
 }
 ////////////////////////////////////////////////////////////////
 function hour(d) {
@@ -93,27 +112,9 @@ function hourRange(d, l, reject) {
 }
 
 function hourList(d) {
-    let dict = {};
-    dict[d[0]] = true;
-
-    for (let i in d[1]) {
-        dict[d[1][i][1]] = true;
-    }
-    return {hours: Object.keys(dict).map(toInt)};
+    return joinListWithKey('hours')(d);
 }
 ////////////////////////////////////////////////////////////////
-function plusN(n) {
-    return function(i) {
-        return n + i;
-    }
-}
-
-function upToN(n) {
-    return function(i) {
-        return i <= n;
-    }
-}
-
 function dayOfMonth(d) {
     return parseInt((d[0][0] || "") + d[0][1]);
 }
@@ -140,13 +141,7 @@ function dayOfMonthRange(d, l, reject) {
 }
 
 function dayOfMonthList(d) {
-    let dict = {};
-    dict[d[0]] = true;
-
-    for (let i in d[1]) {
-        dict[d[1][i][1]] = true;
-    }
-    return {daysOfMonth: Object.keys(dict).map(toInt)};
+    return joinListWithKey('daysOfMonth')(d);
 }
 ////////////////////////////////////////////////////////////////
 function monthOfYearNum(d) {
@@ -175,13 +170,7 @@ function monthOfYearRange(d, l, reject) {
 }
 
 function monthOfYearList(d) {
-    let dict = {};
-    dict[d[0]] = true;
-
-    for (let i in d[1]) {
-        dict[d[1][i][1]] = true;
-    }
-    return {monthsOfYear: Object.keys(dict).map(toInt)};
+    return joinListWithKey('monthsOfYear')(d);
 }
 ////////////////////////////////////////////////////////////////
 function cronFunc(d) {
@@ -194,7 +183,7 @@ function cronFunc(d) {
         }
     }
 }
-
+////////////////////////////////////////////////////////////////
 var grammar = {
     ParserRules: [
     {"name": "statement", "symbols": ["minutes", "_", "hours", "_", "daysOfMonth", "_", "monthsOfYear"], "postprocess": cronFunc},
