@@ -149,19 +149,55 @@ function dayOfMonthList(d) {
     return {daysOfMonth: Object.keys(dict).map(toInt)};
 }
 ////////////////////////////////////////////////////////////////
+function monthOfYearNum(d) {
+    return parseInt((d[0][0] || "") + d[0][1]);
+}
+
+function allMonthsOfYear(d) {
+    return {monthsOfYear: jumpRange(12).map(plusN(1))};
+}
+
+function monthOfYearJump(d) {
+    let step = parseInt(d[1]);
+
+    return {monthsOfYear: jumpRange(12, step).map(plusN(step)).filter(upToN(12))};
+}
+
+function monthOfYearRange(d, l, reject) {
+    let minNum = d[0];
+    let maxNum = d[2];
+
+    if (maxNum <= minNum) {
+        return reject;
+    }
+
+    return {monthsOfYear: numRange(minNum, maxNum)};
+}
+
+function monthOfYearList(d) {
+    let dict = {};
+    dict[d[0]] = true;
+
+    for (let i in d[1]) {
+        dict[d[1][i][1]] = true;
+    }
+    return {monthsOfYear: Object.keys(dict).map(toInt)};
+}
+////////////////////////////////////////////////////////////////
 function cronFunc(d) {
     return {
         cron: {
             minutes: d[0].minutes,
             hours: d[2].hours,
-            daysOfMonth: d[4].daysOfMonth
+            daysOfMonth: d[4].daysOfMonth,
+            monthsOfYear: d[6].monthsOfYear,
         }
     }
 }
 
 var grammar = {
     ParserRules: [
-    {"name": "statement", "symbols": ["minutes", "_", "hours", "_", "daysOfMonth"], "postprocess": cronFunc},
+    {"name": "statement", "symbols": ["minutes", "_", "hours", "_", "daysOfMonth", "_", "monthsOfYear"], "postprocess": cronFunc},
     {"name": "minutes", "symbols": [{"literal":"*"}], "postprocess": minuteAll},
     {"name": "minutes$string$1", "symbols": [{"literal":"*"}, {"literal":"/"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "minutes$subexpression$1", "symbols": [/[23456]/]},
@@ -205,6 +241,19 @@ var grammar = {
     {"name": "daysOfMonth$ebnf$1$subexpression$1", "symbols": [{"literal":","}, "dayOfMonth"]},
     {"name": "daysOfMonth$ebnf$1", "symbols": ["daysOfMonth$ebnf$1$subexpression$1", "daysOfMonth$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "daysOfMonth", "symbols": ["dayOfMonth", "daysOfMonth$ebnf$1"], "postprocess": dayOfMonthList},
+    {"name": "monthsOfYear", "symbols": [{"literal":"*"}], "postprocess": allMonthsOfYear},
+    {"name": "monthsOfYear$string$1", "symbols": [{"literal":"*"}, {"literal":"/"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "monthsOfYear", "symbols": ["monthsOfYear$string$1", /[2346]/], "postprocess": monthOfYearJump},
+    {"name": "monthsOfYear", "symbols": ["monthOfYearNum", {"literal":"-"}, "monthOfYearNum"], "postprocess": monthOfYearRange},
+    {"name": "monthsOfYear$ebnf$1", "symbols": []},
+    {"name": "monthsOfYear$ebnf$1$subexpression$1", "symbols": [{"literal":","}, "monthOfYearNum"]},
+    {"name": "monthsOfYear$ebnf$1", "symbols": ["monthsOfYear$ebnf$1$subexpression$1", "monthsOfYear$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "monthsOfYear", "symbols": ["monthOfYearNum", "monthsOfYear$ebnf$1"], "postprocess": monthOfYearList},
+    {"name": "monthsOfYear", "symbols": ["monthOfYearLit", {"literal":"-"}, "monthOfYearLit"], "postprocess": monthOfYearRange},
+    {"name": "monthsOfYear$ebnf$2", "symbols": []},
+    {"name": "monthsOfYear$ebnf$2$subexpression$1", "symbols": [{"literal":","}, "monthOfYearLit"]},
+    {"name": "monthsOfYear$ebnf$2", "symbols": ["monthsOfYear$ebnf$2$subexpression$1", "monthsOfYear$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "monthsOfYear", "symbols": ["monthOfYearLit", "monthsOfYear$ebnf$2"], "postprocess": monthOfYearList},
     {"name": "minute$ebnf$1", "symbols": [/[0-5]/], "postprocess": id},
     {"name": "minute$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "minute", "symbols": ["minute$ebnf$1", /[0-9]/], "postprocess": minute},
@@ -219,6 +268,23 @@ var grammar = {
     {"name": "dayOfMonth$subexpression$1", "symbols": [/[12]/, /[0-9]/]},
     {"name": "dayOfMonth$subexpression$1", "symbols": [{"literal":"3"}, /[01]/]},
     {"name": "dayOfMonth", "symbols": ["dayOfMonth$subexpression$1"], "postprocess": dayOfMonth},
+    {"name": "monthOfYearNum$subexpression$1$ebnf$1", "symbols": [{"literal":"0"}], "postprocess": id},
+    {"name": "monthOfYearNum$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "monthOfYearNum$subexpression$1", "symbols": ["monthOfYearNum$subexpression$1$ebnf$1", /[1-9]/]},
+    {"name": "monthOfYearNum$subexpression$1", "symbols": [{"literal":"1"}, /[0-2]/]},
+    {"name": "monthOfYearNum", "symbols": ["monthOfYearNum$subexpression$1"], "postprocess": monthOfYearNum},
+    {"name": "monthOfYearLit", "symbols": [/[jJ]/, /[aA]/, /[nN]/], "postprocess": function(d) { return 1; }},
+    {"name": "monthOfYearLit", "symbols": [/[fF]/, /[eE]/, /[bB]/], "postprocess": function(d) { return 2; }},
+    {"name": "monthOfYearLit", "symbols": [/[mM]/, /[aA]/, /[rR]/], "postprocess": function(d) { return 3; }},
+    {"name": "monthOfYearLit", "symbols": [/[aA]/, /[pP]/, /[rR]/], "postprocess": function(d) { return 4; }},
+    {"name": "monthOfYearLit", "symbols": [/[mM]/, /[aA]/, /[yY]/], "postprocess": function(d) { return 5; }},
+    {"name": "monthOfYearLit", "symbols": [/[jJ]/, /[uU]/, /[nN]/], "postprocess": function(d) { return 6; }},
+    {"name": "monthOfYearLit", "symbols": [/[jJ]/, /[uU]/, /[lL]/], "postprocess": function(d) { return 7; }},
+    {"name": "monthOfYearLit", "symbols": [/[aA]/, /[uU]/, /[gG]/], "postprocess": function(d) { return 8; }},
+    {"name": "monthOfYearLit", "symbols": [/[sS]/, /[eE]/, /[pP]/], "postprocess": function(d) { return 9; }},
+    {"name": "monthOfYearLit", "symbols": [/[oO]/, /[cC]/, /[tT]/], "postprocess": function(d) { return 10; }},
+    {"name": "monthOfYearLit", "symbols": [/[nN]/, /[oO]/, /[vV]/], "postprocess": function(d) { return 11; }},
+    {"name": "monthOfYearLit", "symbols": [/[dD]/, /[eE]/, /[cC]/], "postprocess": function(d) { return 12; }},
     {"name": "_$ebnf$1", "symbols": [/[ \t]/]},
     {"name": "_$ebnf$1", "symbols": [/[ \t]/, "_$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "_", "symbols": ["_$ebnf$1"], "postprocess": function(d) { return null; }}
