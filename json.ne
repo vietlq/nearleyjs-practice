@@ -17,6 +17,9 @@ value ->
     | array {% id %}
     | number {% id %}
     | string {% id %}
+    | "true" {% function(d) { return true; } %}
+    | "false" {% function(d) { return false; } %}
+    | "null" {% function(d) { return null; } %}
 
 number -> [0-9]:+ {% function(d) { return parseInt(d[0].join("")); } %}
 
