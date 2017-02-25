@@ -1,9 +1,18 @@
+# Parser for classic crontab. For syntax, check: man 5 crontab
+# Note that Vixie crontab extensions are not included, as any other extension
+# Linux, FreeBSD, MacOS X (macos) all use Vixie extensions
+# Solaris as opposed, uses classic crontab syntax
+# Any valid classic crontab can be used on Linux, FreeBSD, MacOS X (macos)
+
 classicCrontab -> "\n":* anyLine ("\n":+ anyLine):* "\n":* {% classicCrontab %}
 
 anyLine ->
-      cronStat {% id %}
+      envSet {% id %}
+    | cronStat {% id %}
     | blankLine {% function(d) { return null; }%}
     | comment {% function(d) { return null; }%}
+
+envSet -> envIdent "=" shellString {% envSet %}
 
 cronStat -> [ \t]:* minutes _ hours _ daysOfMonth _ monthsOfYear _ daysOfWeek _ cronShellCmd {% cronStat %}
 
@@ -46,6 +55,12 @@ daysOfWeek ->
 
 cronShellCmd -> shellCmd shellStdIn:? {% cronShellCmd %}
 
+envIdent -> [a-zA-Z_] [0-9a-zA-Z_]:* {% function(d) { return d[0] + d[1].join("") } %}
+
+shellString ->
+      ("\\":? [^\r\n'"\\] | "\\" "\"" | "\\" "'" | "\\" "\\"):+ {% unQuotedString %}
+    | "\"" ([^\r\n'"\\] | "\\\"" | "\\'" | "\\\\"):* "\"" {% function(d) { return d[0] + d[1].join("") + d[2]; } %}
+
 minute -> [0-5]:? [0-9] {% minute %}
 
 hour -> ([01]:? [0-9] | "2" [0-3]) {% hour %}
@@ -79,7 +94,7 @@ dayOfWeekLit ->
     | [fF] [rR] [iI] {% function(d) { return 5; } %}
     | [sS] [aA] [tT] {% function(d) { return 6; } %}
 
-shellCmd -> [^\n\s%\\] ([^\r\n%\\] | "\\\\" | "\\%"):* {% function(d) { return d[0] + d[1].join("").trim(); } %}
+shellCmd -> [^\n\s%\\] ([^\r\n%\\] | "\\\\" | "\\%"):* {% shellCmd %}
 
 shellStdIn -> "%" shellStdInChar:* {% shellStdIn %}
 
@@ -144,6 +159,26 @@ function joinListWithKey(key) {
         output[key] = Object.keys(dict).map(toInt);
         return output;
     }
+}
+
+/***** FUNCTIONS FOR ENVIRONMENT VARS *****/
+
+function envSet(d) {
+    let output = {};
+
+    output[d[0]] = d[2];
+
+    return {env: output};
+}
+
+function unQuotedString(d) {
+    let output = [];
+
+    for (let i in d[0]) {
+        output.push(d[0][i][1]);
+    }
+
+    return output.join("");
 }
 
 /***** FUNCTIONS FOR MINUTES *****/
@@ -293,6 +328,10 @@ function dayOfWeekList(d) {
 
 /***** FUNCTIONS FOR SHELL COMMANDS *****/
 
+function shellCmd(d) {
+    return d[0] + d[1].join("").trim();
+}
+
 function shellStdIn(d) {
     let output = d[1].join("");
     return ((output === "") ? null : output);
@@ -318,8 +357,8 @@ function cronStat(d) {
 }
 
 function isValidStat(obj) {
-    //return (obj && obj.cron);
-    return obj;
+    // Accept only cron & env statements
+    return (obj && (obj.cron || obj.env));
 }
 
 function classicCrontab(d) {
