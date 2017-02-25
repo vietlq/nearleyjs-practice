@@ -5,7 +5,7 @@ anyLine ->
     | blankLine {% function(d) { return null; }%}
     | comment {% function(d) { return null; }%}
 
-cronStat -> minutes _ hours _ daysOfMonth _ monthsOfYear _ daysOfWeek _ cronShellCmd {% cronStat %}
+cronStat -> [ \t]:* minutes _ hours _ daysOfMonth _ monthsOfYear _ daysOfWeek _ cronShellCmd {% cronStat %}
 
 comment -> "#" [^\n]:* {% function(d) { return null; }%}
 
@@ -307,12 +307,12 @@ function cronShellCmd(d) {
 function cronStat(d) {
     return {
         cron: {
-            minutes: d[0].minutes,
-            hours: d[2].hours,
-            daysOfMonth: d[4].daysOfMonth,
-            monthsOfYear: d[6].monthsOfYear,
-            daysOfWeek: d[8].daysOfWeek,
-            shell: d[10]
+            minutes: d[1].minutes,
+            hours: d[3].hours,
+            daysOfMonth: d[5].daysOfMonth,
+            monthsOfYear: d[7].monthsOfYear,
+            daysOfWeek: d[9].daysOfWeek,
+            shell: d[11]
         }
     }
 }

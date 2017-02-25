@@ -6,3 +6,5 @@
 6-29 19,17,12 */5 dec,nov,oct,jan fri a
 
 6-29 19,17,12 */5 dec,nov,oct,jan fri echo "\%" burger! "\%" % stdin
+
+6-29 19,17,12 */5 dec,nov,oct,jan fri echo "\%" burger! "%" stdin

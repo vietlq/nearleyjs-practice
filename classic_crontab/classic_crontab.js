@@ -220,12 +220,12 @@ function cronShellCmd(d) {
 function cronStat(d) {
     return {
         cron: {
-            minutes: d[0].minutes,
-            hours: d[2].hours,
-            daysOfMonth: d[4].daysOfMonth,
-            monthsOfYear: d[6].monthsOfYear,
-            daysOfWeek: d[8].daysOfWeek,
-            shell: d[10]
+            minutes: d[1].minutes,
+            hours: d[3].hours,
+            daysOfMonth: d[5].daysOfMonth,
+            monthsOfYear: d[7].monthsOfYear,
+            daysOfWeek: d[9].daysOfWeek,
+            shell: d[11]
         }
     }
 }
@@ -266,7 +266,9 @@ var grammar = {
     {"name": "anyLine", "symbols": ["cronStat"], "postprocess": id},
     {"name": "anyLine", "symbols": ["blankLine"], "postprocess": function(d) { return null; }},
     {"name": "anyLine", "symbols": ["comment"], "postprocess": function(d) { return null; }},
-    {"name": "cronStat", "symbols": ["minutes", "_", "hours", "_", "daysOfMonth", "_", "monthsOfYear", "_", "daysOfWeek", "_", "cronShellCmd"], "postprocess": cronStat},
+    {"name": "cronStat$ebnf$1", "symbols": []},
+    {"name": "cronStat$ebnf$1", "symbols": [/[ \t]/, "cronStat$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "cronStat", "symbols": ["cronStat$ebnf$1", "minutes", "_", "hours", "_", "daysOfMonth", "_", "monthsOfYear", "_", "daysOfWeek", "_", "cronShellCmd"], "postprocess": cronStat},
     {"name": "comment$ebnf$1", "symbols": []},
     {"name": "comment$ebnf$1", "symbols": [/[^\n]/, "comment$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "comment", "symbols": [{"literal":"#"}, "comment$ebnf$1"], "postprocess": function(d) { return null; }},
