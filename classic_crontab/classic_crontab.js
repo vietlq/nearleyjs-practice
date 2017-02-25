@@ -59,6 +59,26 @@ function joinListWithKey(key) {
     }
 }
 
+/***** FUNCTIONS FOR ENVIRONMENT VARS *****/
+
+function envSet(d) {
+    let output = {};
+
+    output[d[0]] = d[2];
+
+    return {env: output};
+}
+
+function unQuotedString(d) {
+    let output = [];
+
+    for (let i in d[0]) {
+        output.push(d[0][i][1]);
+    }
+
+    return output.join("");
+}
+
 /***** FUNCTIONS FOR MINUTES *****/
 
 function minute(d) {
@@ -206,6 +226,10 @@ function dayOfWeekList(d) {
 
 /***** FUNCTIONS FOR SHELL COMMANDS *****/
 
+function shellCmd(d) {
+    return d[0] + d[1].join("").trim();
+}
+
 function shellStdIn(d) {
     let output = d[1].join("");
     return ((output === "") ? null : output);
@@ -231,8 +255,8 @@ function cronStat(d) {
 }
 
 function isValidStat(obj) {
-    //return (obj && obj.cron);
-    return obj;
+    // Accept only cron & env statements
+    return (obj && (obj.cron || obj.env));
 }
 
 function classicCrontab(d) {
@@ -263,9 +287,13 @@ var grammar = {
     {"name": "classicCrontab$ebnf$3", "symbols": []},
     {"name": "classicCrontab$ebnf$3", "symbols": [{"literal":"\n"}, "classicCrontab$ebnf$3"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "classicCrontab", "symbols": ["classicCrontab$ebnf$1", "anyLine", "classicCrontab$ebnf$2", "classicCrontab$ebnf$3"], "postprocess": classicCrontab},
+    {"name": "anyLine", "symbols": ["envSet"], "postprocess": id},
     {"name": "anyLine", "symbols": ["cronStat"], "postprocess": id},
     {"name": "anyLine", "symbols": ["blankLine"], "postprocess": function(d) { return null; }},
     {"name": "anyLine", "symbols": ["comment"], "postprocess": function(d) { return null; }},
+    {"name": "envSet$ebnf$1", "symbols": ["shellString"], "postprocess": id},
+    {"name": "envSet$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "envSet", "symbols": ["envIdent", {"literal":"="}, "envSet$ebnf$1"], "postprocess": envSet},
     {"name": "cronStat$ebnf$1", "symbols": []},
     {"name": "cronStat$ebnf$1", "symbols": [/[ \t]/, "cronStat$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "cronStat", "symbols": ["cronStat$ebnf$1", "minutes", "_", "hours", "_", "daysOfMonth", "_", "monthsOfYear", "_", "daysOfWeek", "_", "cronShellCmd"], "postprocess": cronStat},
@@ -343,6 +371,42 @@ var grammar = {
     {"name": "cronShellCmd$ebnf$1", "symbols": ["shellStdIn"], "postprocess": id},
     {"name": "cronShellCmd$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "cronShellCmd", "symbols": ["shellCmd", "cronShellCmd$ebnf$1"], "postprocess": cronShellCmd},
+    {"name": "envIdent$ebnf$1", "symbols": []},
+    {"name": "envIdent$ebnf$1", "symbols": [/[0-9a-zA-Z_]/, "envIdent$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "envIdent", "symbols": [/[a-zA-Z_]/, "envIdent$ebnf$1"], "postprocess": function(d) { return d[0] + d[1].join("") }},
+    {"name": "shellString$ebnf$1$subexpression$1$ebnf$1", "symbols": [{"literal":"\\"}], "postprocess": id},
+    {"name": "shellString$ebnf$1$subexpression$1$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "shellString$ebnf$1$subexpression$1", "symbols": ["shellString$ebnf$1$subexpression$1$ebnf$1", /[^\r\n'"\\]/]},
+    {"name": "shellString$ebnf$1$subexpression$1", "symbols": [{"literal":"\\"}, {"literal":"\""}]},
+    {"name": "shellString$ebnf$1$subexpression$1", "symbols": [{"literal":"\\"}, {"literal":"'"}]},
+    {"name": "shellString$ebnf$1$subexpression$1", "symbols": [{"literal":"\\"}, {"literal":"\\"}]},
+    {"name": "shellString$ebnf$1", "symbols": ["shellString$ebnf$1$subexpression$1"]},
+    {"name": "shellString$ebnf$1$subexpression$2$ebnf$1", "symbols": [{"literal":"\\"}], "postprocess": id},
+    {"name": "shellString$ebnf$1$subexpression$2$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "shellString$ebnf$1$subexpression$2", "symbols": ["shellString$ebnf$1$subexpression$2$ebnf$1", /[^\r\n'"\\]/]},
+    {"name": "shellString$ebnf$1$subexpression$2", "symbols": [{"literal":"\\"}, {"literal":"\""}]},
+    {"name": "shellString$ebnf$1$subexpression$2", "symbols": [{"literal":"\\"}, {"literal":"'"}]},
+    {"name": "shellString$ebnf$1$subexpression$2", "symbols": [{"literal":"\\"}, {"literal":"\\"}]},
+    {"name": "shellString$ebnf$1", "symbols": ["shellString$ebnf$1$subexpression$2", "shellString$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "shellString", "symbols": ["shellString$ebnf$1"], "postprocess": unQuotedString},
+    {"name": "shellString$ebnf$2", "symbols": []},
+    {"name": "shellString$ebnf$2", "symbols": ["doubleQuotedContent", "shellString$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "shellString", "symbols": [{"literal":"\""}, "shellString$ebnf$2", {"literal":"\""}], "postprocess": function(d) { return d[1].join(""); }},
+    {"name": "shellString$ebnf$3", "symbols": []},
+    {"name": "shellString$ebnf$3", "symbols": ["singleQuotedContent", "shellString$ebnf$3"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "shellString", "symbols": [{"literal":"'"}, "shellString$ebnf$3", {"literal":"'"}], "postprocess": function(d) { return d[1].join(""); }},
+    {"name": "doubleQuotedContent", "symbols": [/[^\r\n"\\]/], "postprocess": function(d) { return d[0]; }},
+    {"name": "doubleQuotedContent", "symbols": [{"literal":"\\"}, /[^\r\n"\\]/], "postprocess": function(d) { return d.join(""); }},
+    {"name": "doubleQuotedContent$string$1", "symbols": [{"literal":"\\"}, {"literal":"\\"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "doubleQuotedContent", "symbols": ["doubleQuotedContent$string$1"], "postprocess": function(d) { return "\\"; }},
+    {"name": "doubleQuotedContent$string$2", "symbols": [{"literal":"\\"}, {"literal":"\""}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "doubleQuotedContent", "symbols": ["doubleQuotedContent$string$2"], "postprocess": function(d) { return "\""; }},
+    {"name": "singleQuotedContent", "symbols": [/[^\r\n'\\]/], "postprocess": function(d) { return d[0]; }},
+    {"name": "singleQuotedContent", "symbols": [{"literal":"\\"}, /[^\r\n'\\]/], "postprocess": function(d) { return d.join(""); }},
+    {"name": "singleQuotedContent$string$1", "symbols": [{"literal":"\\"}, {"literal":"\\"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "singleQuotedContent", "symbols": ["singleQuotedContent$string$1"], "postprocess": function(d) { return "\\"; }},
+    {"name": "singleQuotedContent$string$2", "symbols": [{"literal":"\\"}, {"literal":"'"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "singleQuotedContent", "symbols": ["singleQuotedContent$string$2"], "postprocess": function(d) { return "'"; }},
     {"name": "minute$ebnf$1", "symbols": [/[0-5]/], "postprocess": id},
     {"name": "minute$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "minute", "symbols": ["minute$ebnf$1", /[0-9]/], "postprocess": minute},
@@ -389,7 +453,7 @@ var grammar = {
     {"name": "shellCmd$ebnf$1$subexpression$1$string$2", "symbols": [{"literal":"\\"}, {"literal":"%"}], "postprocess": function joiner(d) {return d.join('');}},
     {"name": "shellCmd$ebnf$1$subexpression$1", "symbols": ["shellCmd$ebnf$1$subexpression$1$string$2"]},
     {"name": "shellCmd$ebnf$1", "symbols": ["shellCmd$ebnf$1$subexpression$1", "shellCmd$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "shellCmd", "symbols": [/[^\n\s%\\]/, "shellCmd$ebnf$1"], "postprocess": function(d) { return d[0] + d[1].join("").trim(); }},
+    {"name": "shellCmd", "symbols": [/[^\n\s%\\]/, "shellCmd$ebnf$1"], "postprocess": shellCmd},
     {"name": "shellStdIn$ebnf$1", "symbols": []},
     {"name": "shellStdIn$ebnf$1", "symbols": ["shellStdInChar", "shellStdIn$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "shellStdIn", "symbols": [{"literal":"%"}, "shellStdIn$ebnf$1"], "postprocess": shellStdIn},

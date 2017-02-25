@@ -12,7 +12,7 @@ anyLine ->
     | blankLine {% function(d) { return null; }%}
     | comment {% function(d) { return null; }%}
 
-envSet -> envIdent "=" shellString {% envSet %}
+envSet -> envIdent "=" shellString:? {% envSet %}
 
 cronStat -> [ \t]:* minutes _ hours _ daysOfMonth _ monthsOfYear _ daysOfWeek _ cronShellCmd {% cronStat %}
 
@@ -59,7 +59,20 @@ envIdent -> [a-zA-Z_] [0-9a-zA-Z_]:* {% function(d) { return d[0] + d[1].join(""
 
 shellString ->
       ("\\":? [^\r\n'"\\] | "\\" "\"" | "\\" "'" | "\\" "\\"):+ {% unQuotedString %}
-    | "\"" ([^\r\n'"\\] | "\\\"" | "\\'" | "\\\\"):* "\"" {% function(d) { return d[0] + d[1].join("") + d[2]; } %}
+    | "\"" doubleQuotedContent:* "\"" {% function(d) { return d[1].join(""); } %}
+    | "'" singleQuotedContent:* "'" {% function(d) { return d[1].join(""); } %}
+
+doubleQuotedContent ->
+      [^\r\n"\\] {% function(d) { return d[0]; } %}
+    | "\\" [^\r\n"\\] {% function(d) { return d.join(""); } %}
+    | "\\\\" {% function(d) { return "\\"; } %}
+    | "\\\"" {% function(d) { return "\""; } %}
+
+singleQuotedContent ->
+      [^\r\n'\\] {% function(d) { return d[0]; } %}
+    | "\\" [^\r\n'\\] {% function(d) { return d.join(""); } %}
+    | "\\\\" {% function(d) { return "\\"; } %}
+    | "\\'" {% function(d) { return "'"; } %}
 
 minute -> [0-5]:? [0-9] {% minute %}
 
@@ -373,6 +386,8 @@ function classicCrontab(d) {
             output.push(d[2][i][1]);
         }
     }
+
+    console.debug(JSON.stringify(output));
 
     return output;
 }
