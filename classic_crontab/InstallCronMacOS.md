@@ -3,9 +3,7 @@
 By default the environment `$EDITOR` is not set. Before editing cron, we should set it:
 
 ```
-$ export EDITOR=vim
-
-$ crontab -e
+$ EDITOR=vim crontab -e
 ```
 
 You can add the following line:
@@ -46,7 +44,7 @@ autocmd filetype crontab setlocal nobackup nowritebackup
 ## Adding cron job for real
 
 ```
-$ crontab -e
+$ EDITOR=vim crontab -e
 
 crontab: no crontab for vietlq - using an empty one
 crontab: installing new crontab
@@ -124,7 +122,7 @@ Status: O
 Remember to remove your newly added crontab statement:
 
 ```
-$ crontab -e
+$ EDITOR=vim crontab -e
 ```
 
 Your computer will thank you for the act.
