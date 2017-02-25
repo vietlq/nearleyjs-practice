@@ -5,7 +5,7 @@ anyLine ->
     | blankLine {% function(d) { return null; }%}
     | comment {% function(d) { return null; }%}
 
-cronStat -> minutes _ hours _ daysOfMonth _ monthsOfYear _ daysOfWeek [ \t]:* {% cronStat %}
+cronStat -> minutes _ hours _ daysOfMonth _ monthsOfYear _ daysOfWeek _ cronShellCmd {% cronStat %}
 
 comment -> "#" [^\n]:* {% function(d) { return null; }%}
 
@@ -44,6 +44,8 @@ daysOfWeek ->
     | dayOfWeekLit "-" dayOfWeekLit {% dayOfWeekRange %}
     | dayOfWeekLit ("," dayOfWeekLit):* {% dayOfWeekList %}
 
+cronShellCmd -> shellCmd shellStdIn:? {% cronShellCmd %}
+
 minute -> [0-5]:? [0-9] {% minute %}
 
 hour -> ([01]:? [0-9] | "2" [0-3]) {% hour %}
@@ -77,10 +79,20 @@ dayOfWeekLit ->
     | [fF] [rR] [iI] {% function(d) { return 5; } %}
     | [sS] [aA] [tT] {% function(d) { return 6; } %}
 
+shellCmd -> [^\n\s%\\] ([^\r\n%\\] | "\\\\" | "\\%"):* {% function(d) { return d[0] + d[1].join("").trim(); } %}
+
+shellStdIn -> "%" shellStdInChar:* {% shellStdIn %}
+
+shellStdInChar ->
+      [^\r\n%] {% function(d) { return d[0]; } %}
+    | "%" {% function(d) { return "\n"; } %}
+
 _ -> [ \t]:+ {% function(d) { return null; } %}
 
 @{%
-////////////////////////////////////////////////////////////////
+
+/***** COMMON FUNCTIONS *****/
+
 function toInt(n) {
     return parseInt(n);
 }
@@ -133,7 +145,9 @@ function joinListWithKey(key) {
         return output;
     }
 }
-////////////////////////////////////////////////////////////////
+
+/***** FUNCTIONS FOR MINUTES *****/
+
 function minute(d) {
     return parseInt((d[0] | "") + d[1]);
 }
@@ -162,7 +176,9 @@ function minuteRange(d, l, reject) {
 function minuteList(d) {
     return joinListWithKey('minutes')(d);
 }
-////////////////////////////////////////////////////////////////
+
+/***** FUNCTIONS FOR HOURS *****/
+
 function hour(d) {
     return parseInt((d[0][0] || "") + d[0][1]);
 }
@@ -191,7 +207,9 @@ function hourRange(d, l, reject) {
 function hourList(d) {
     return joinListWithKey('hours')(d);
 }
-////////////////////////////////////////////////////////////////
+
+/***** FUNCTIONS FOR THE DAYS OF THE MONTH *****/
+
 function dayOfMonth(d) {
     return parseInt((d[0][0] || "") + d[0][1]);
 }
@@ -220,7 +238,9 @@ function dayOfMonthRange(d, l, reject) {
 function dayOfMonthList(d) {
     return joinListWithKey('daysOfMonth')(d);
 }
-////////////////////////////////////////////////////////////////
+
+/***** FUNCTIONS FOR THE MONTHS OF THE YEAR *****/
+
 function monthOfYearNum(d) {
     return parseInt((d[0][0] || "") + d[0][1]);
 }
@@ -249,7 +269,9 @@ function monthOfYearRange(d, l, reject) {
 function monthOfYearList(d) {
     return joinListWithKey('monthsOfYear')(d);
 }
-////////////////////////////////////////////////////////////////
+
+/***** FUNCTIONS FOR THE DAYS OF THE WEEK *****/
+
 function allDaysOfWeek(d) {
     return {daysOfWeek: jumpRange(7)};
 }
@@ -268,7 +290,20 @@ function dayOfWeekRange(d, l, reject) {
 function dayOfWeekList(d) {
     return joinListWithKey('daysOfWeek')(d);
 }
-////////////////////////////////////////////////////////////////
+
+/***** FUNCTIONS FOR SHELL COMMANDS *****/
+
+function shellStdIn(d) {
+    let output = d[1].join("");
+    return ((output === "") ? null : output);
+}
+
+function cronShellCmd(d) {
+    return {cmd: d[0], stdin: d[1]};
+}
+
+/***** FUNCTIONS FOR CRON STATEMENTS *****/
+
 function cronStat(d) {
     return {
         cron: {
@@ -277,6 +312,7 @@ function cronStat(d) {
             daysOfMonth: d[4].daysOfMonth,
             monthsOfYear: d[6].monthsOfYear,
             daysOfWeek: d[8].daysOfWeek,
+            shell: d[10]
         }
     }
 }
@@ -301,5 +337,5 @@ function classicCrontab(d) {
 
     return output;
 }
-////////////////////////////////////////////////////////////////
+
 %}

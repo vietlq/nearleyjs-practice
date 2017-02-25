@@ -3,7 +3,9 @@
 (function () {
 function id(x) {return x[0]; }
 
-////////////////////////////////////////////////////////////////
+
+/***** COMMON FUNCTIONS *****/
+
 function toInt(n) {
     return parseInt(n);
 }
@@ -56,7 +58,9 @@ function joinListWithKey(key) {
         return output;
     }
 }
-////////////////////////////////////////////////////////////////
+
+/***** FUNCTIONS FOR MINUTES *****/
+
 function minute(d) {
     return parseInt((d[0] | "") + d[1]);
 }
@@ -85,7 +89,9 @@ function minuteRange(d, l, reject) {
 function minuteList(d) {
     return joinListWithKey('minutes')(d);
 }
-////////////////////////////////////////////////////////////////
+
+/***** FUNCTIONS FOR HOURS *****/
+
 function hour(d) {
     return parseInt((d[0][0] || "") + d[0][1]);
 }
@@ -114,7 +120,9 @@ function hourRange(d, l, reject) {
 function hourList(d) {
     return joinListWithKey('hours')(d);
 }
-////////////////////////////////////////////////////////////////
+
+/***** FUNCTIONS FOR THE DAYS OF THE MONTH *****/
+
 function dayOfMonth(d) {
     return parseInt((d[0][0] || "") + d[0][1]);
 }
@@ -143,7 +151,9 @@ function dayOfMonthRange(d, l, reject) {
 function dayOfMonthList(d) {
     return joinListWithKey('daysOfMonth')(d);
 }
-////////////////////////////////////////////////////////////////
+
+/***** FUNCTIONS FOR THE MONTHS OF THE YEAR *****/
+
 function monthOfYearNum(d) {
     return parseInt((d[0][0] || "") + d[0][1]);
 }
@@ -172,7 +182,9 @@ function monthOfYearRange(d, l, reject) {
 function monthOfYearList(d) {
     return joinListWithKey('monthsOfYear')(d);
 }
-////////////////////////////////////////////////////////////////
+
+/***** FUNCTIONS FOR THE DAYS OF THE WEEK *****/
+
 function allDaysOfWeek(d) {
     return {daysOfWeek: jumpRange(7)};
 }
@@ -191,7 +203,20 @@ function dayOfWeekRange(d, l, reject) {
 function dayOfWeekList(d) {
     return joinListWithKey('daysOfWeek')(d);
 }
-////////////////////////////////////////////////////////////////
+
+/***** FUNCTIONS FOR SHELL COMMANDS *****/
+
+function shellStdIn(d) {
+    let output = d[1].join("");
+    return ((output === "") ? null : output);
+}
+
+function cronShellCmd(d) {
+    return {cmd: d[0], stdin: d[1]};
+}
+
+/***** FUNCTIONS FOR CRON STATEMENTS *****/
+
 function cronStat(d) {
     return {
         cron: {
@@ -200,6 +225,7 @@ function cronStat(d) {
             daysOfMonth: d[4].daysOfMonth,
             monthsOfYear: d[6].monthsOfYear,
             daysOfWeek: d[8].daysOfWeek,
+            shell: d[10]
         }
     }
 }
@@ -224,7 +250,7 @@ function classicCrontab(d) {
 
     return output;
 }
-////////////////////////////////////////////////////////////////
+
 var grammar = {
     ParserRules: [
     {"name": "classicCrontab$ebnf$1", "symbols": []},
@@ -240,9 +266,7 @@ var grammar = {
     {"name": "anyLine", "symbols": ["cronStat"], "postprocess": id},
     {"name": "anyLine", "symbols": ["blankLine"], "postprocess": function(d) { return null; }},
     {"name": "anyLine", "symbols": ["comment"], "postprocess": function(d) { return null; }},
-    {"name": "cronStat$ebnf$1", "symbols": []},
-    {"name": "cronStat$ebnf$1", "symbols": [/[ \t]/, "cronStat$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
-    {"name": "cronStat", "symbols": ["minutes", "_", "hours", "_", "daysOfMonth", "_", "monthsOfYear", "_", "daysOfWeek", "cronStat$ebnf$1"], "postprocess": cronStat},
+    {"name": "cronStat", "symbols": ["minutes", "_", "hours", "_", "daysOfMonth", "_", "monthsOfYear", "_", "daysOfWeek", "_", "cronShellCmd"], "postprocess": cronStat},
     {"name": "comment$ebnf$1", "symbols": []},
     {"name": "comment$ebnf$1", "symbols": [/[^\n]/, "comment$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "comment", "symbols": [{"literal":"#"}, "comment$ebnf$1"], "postprocess": function(d) { return null; }},
@@ -314,6 +338,9 @@ var grammar = {
     {"name": "daysOfWeek$ebnf$2$subexpression$1", "symbols": [{"literal":","}, "dayOfWeekLit"]},
     {"name": "daysOfWeek$ebnf$2", "symbols": ["daysOfWeek$ebnf$2$subexpression$1", "daysOfWeek$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "daysOfWeek", "symbols": ["dayOfWeekLit", "daysOfWeek$ebnf$2"], "postprocess": dayOfWeekList},
+    {"name": "cronShellCmd$ebnf$1", "symbols": ["shellStdIn"], "postprocess": id},
+    {"name": "cronShellCmd$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
+    {"name": "cronShellCmd", "symbols": ["shellCmd", "cronShellCmd$ebnf$1"], "postprocess": cronShellCmd},
     {"name": "minute$ebnf$1", "symbols": [/[0-5]/], "postprocess": id},
     {"name": "minute$ebnf$1", "symbols": [], "postprocess": function(d) {return null;}},
     {"name": "minute", "symbols": ["minute$ebnf$1", /[0-9]/], "postprocess": minute},
@@ -353,6 +380,19 @@ var grammar = {
     {"name": "dayOfWeekLit", "symbols": [/[tT]/, /[hH]/, /[uU]/], "postprocess": function(d) { return 4; }},
     {"name": "dayOfWeekLit", "symbols": [/[fF]/, /[rR]/, /[iI]/], "postprocess": function(d) { return 5; }},
     {"name": "dayOfWeekLit", "symbols": [/[sS]/, /[aA]/, /[tT]/], "postprocess": function(d) { return 6; }},
+    {"name": "shellCmd$ebnf$1", "symbols": []},
+    {"name": "shellCmd$ebnf$1$subexpression$1", "symbols": [/[^\r\n%\\]/]},
+    {"name": "shellCmd$ebnf$1$subexpression$1$string$1", "symbols": [{"literal":"\\"}, {"literal":"\\"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "shellCmd$ebnf$1$subexpression$1", "symbols": ["shellCmd$ebnf$1$subexpression$1$string$1"]},
+    {"name": "shellCmd$ebnf$1$subexpression$1$string$2", "symbols": [{"literal":"\\"}, {"literal":"%"}], "postprocess": function joiner(d) {return d.join('');}},
+    {"name": "shellCmd$ebnf$1$subexpression$1", "symbols": ["shellCmd$ebnf$1$subexpression$1$string$2"]},
+    {"name": "shellCmd$ebnf$1", "symbols": ["shellCmd$ebnf$1$subexpression$1", "shellCmd$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "shellCmd", "symbols": [/[^\n\s%\\]/, "shellCmd$ebnf$1"], "postprocess": function(d) { return d[0] + d[1].join("").trim(); }},
+    {"name": "shellStdIn$ebnf$1", "symbols": []},
+    {"name": "shellStdIn$ebnf$1", "symbols": ["shellStdInChar", "shellStdIn$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "shellStdIn", "symbols": [{"literal":"%"}, "shellStdIn$ebnf$1"], "postprocess": shellStdIn},
+    {"name": "shellStdInChar", "symbols": [/[^\r\n%]/], "postprocess": function(d) { return d[0]; }},
+    {"name": "shellStdInChar", "symbols": [{"literal":"%"}], "postprocess": function(d) { return "\n"; }},
     {"name": "_$ebnf$1", "symbols": [/[ \t]/]},
     {"name": "_$ebnf$1", "symbols": [/[ \t]/, "_$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
     {"name": "_", "symbols": ["_$ebnf$1"], "postprocess": function(d) { return null; }}
