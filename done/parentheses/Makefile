@@ -8,6 +8,8 @@ compile:
 test:
 	nearley-test -i "()" parentheses.js
 	nearley-test -i "(()())" parentheses.js
+	# This will not fail, but the parse result will be empty: []
+	nearley-test -i "((((())))(())()" parentheses.js
 	nearley-test -i "[(((<>)()({})())(()())(())[])]" parentheses.js
 	nearley-test -i "<<[([])]>([(<>[]{}{}<>())[{}[][]{}{}[]<>[]{}<>{}<>[]<>{}()][[][][]()()()]({})<[]>{(){}()<>}(<>[])]())({})>" parentheses.js
 
