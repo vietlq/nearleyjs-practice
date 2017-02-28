@@ -5,14 +5,14 @@ function id(x) {return x[0]; }
 var grammar = {
     ParserRules: [
     {"name": "commands$ebnf$1", "symbols": []},
-    {"name": "commands$ebnf$1", "symbols": [{"literal":"\n"}, "commands$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "commands$ebnf$1", "symbols": ["commands$ebnf$1", {"literal":"\n"}], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "commands$ebnf$2", "symbols": []},
     {"name": "commands$ebnf$2$subexpression$1$ebnf$1", "symbols": [{"literal":"\n"}]},
-    {"name": "commands$ebnf$2$subexpression$1$ebnf$1", "symbols": [{"literal":"\n"}, "commands$ebnf$2$subexpression$1$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "commands$ebnf$2$subexpression$1$ebnf$1", "symbols": ["commands$ebnf$2$subexpression$1$ebnf$1", {"literal":"\n"}], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "commands$ebnf$2$subexpression$1", "symbols": ["commands$ebnf$2$subexpression$1$ebnf$1", "command"]},
-    {"name": "commands$ebnf$2", "symbols": ["commands$ebnf$2$subexpression$1", "commands$ebnf$2"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "commands$ebnf$2", "symbols": ["commands$ebnf$2", "commands$ebnf$2$subexpression$1"], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "commands$ebnf$3", "symbols": []},
-    {"name": "commands$ebnf$3", "symbols": [{"literal":"\n"}, "commands$ebnf$3"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "commands$ebnf$3", "symbols": ["commands$ebnf$3", {"literal":"\n"}], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "commands", "symbols": ["commands$ebnf$1", "command", "commands$ebnf$2", "commands$ebnf$3"], "postprocess":  function(d) {
             let output = [d[1]];
             for (let i in d[2]) {
@@ -40,11 +40,11 @@ var grammar = {
     {"name": "coor", "symbols": ["coor$ebnf$1", "size"], "postprocess": function(d) { return (d[0] === "-") ? -d[1] : d[1]; }},
     {"name": "size", "symbols": [{"literal":"0"}], "postprocess": function(d) { return 0; }},
     {"name": "size$ebnf$1", "symbols": []},
-    {"name": "size$ebnf$1", "symbols": [/[0-9]/, "size$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "size$ebnf$1", "symbols": ["size$ebnf$1", /[0-9]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "size", "symbols": [/[1-9]/, "size$ebnf$1"], "postprocess": function(d) { return parseInt(d[0] + d[1].join("")); }},
     {"name": "_", "symbols": []},
     {"name": "_$ebnf$1", "symbols": [/[ \t]/]},
-    {"name": "_$ebnf$1", "symbols": [/[ \t]/, "_$ebnf$1"], "postprocess": function arrconcat(d) {return [d[0]].concat(d[1]);}},
+    {"name": "_$ebnf$1", "symbols": ["_$ebnf$1", /[ \t]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},
     {"name": "_", "symbols": ["_$ebnf$1"], "postprocess": function(d) { return null; }}
 ]
   , ParserStart: "commands"
