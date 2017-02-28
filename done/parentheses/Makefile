@@ -7,9 +7,9 @@ compile:
 
 test:
 	nearley-test -i "()" parentheses.js
-	nearley-test -i "(())" parentheses.js
 	nearley-test -i "(()())" parentheses.js
-	nearley-test -i "(()()((())))" parentheses.js
+	nearley-test -i "[(((<>)()({})())(()())(())[])]" parentheses.js
+	nearley-test -i "<<[([])]>([(<>[]{}{}<>())[{}[][]{}{}[]<>[]{}<>{}<>[]<>{}()][[][][]()()()]({})<[]>{(){}()<>}(<>[])]())({})>" parentheses.js
 
 generate:
 
