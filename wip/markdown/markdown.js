@@ -78,6 +78,7 @@ function sentence(data, location, reject) {
 }
 
 var grammar = {
+    Lexer: undefined,
     ParserRules: [
     {"name": "markdown$ebnf$1", "symbols": []},
     {"name": "markdown$ebnf$1", "symbols": ["markdown$ebnf$1", {"literal":"\n"}], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},

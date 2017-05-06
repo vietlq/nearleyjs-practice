@@ -276,6 +276,7 @@ function classicCrontab(d) {
 }
 
 var grammar = {
+    Lexer: undefined,
     ParserRules: [
     {"name": "classicCrontab$ebnf$1", "symbols": []},
     {"name": "classicCrontab$ebnf$1", "symbols": ["classicCrontab$ebnf$1", {"literal":"\n"}], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},

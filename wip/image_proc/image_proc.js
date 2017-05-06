@@ -3,6 +3,7 @@
 (function () {
 function id(x) {return x[0]; }
 var grammar = {
+    Lexer: undefined,
     ParserRules: [
     {"name": "commands$ebnf$1", "symbols": []},
     {"name": "commands$ebnf$1", "symbols": ["commands$ebnf$1", {"literal":"\n"}], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},

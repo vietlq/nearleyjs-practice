@@ -37,6 +37,7 @@ function retHSLA(data, location, reject) {
 }
 
 var grammar = {
+    Lexer: undefined,
     ParserRules: [
     {"name": "main", "symbols": ["_", "csscolor", "_"], "postprocess": function(d) {return d[1]; }},
     {"name": "csscolor", "symbols": ["rgb"], "postprocess": id},

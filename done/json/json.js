@@ -47,6 +47,7 @@ function extractNumber(d) {
 }
 
 var grammar = {
+    Lexer: undefined,
     ParserRules: [
     {"name": "json$ebnf$1", "symbols": []},
     {"name": "json$ebnf$1", "symbols": ["json$ebnf$1", /[\s]/], "postprocess": function arrpush(d) {return d[0].concat([d[1]]);}},

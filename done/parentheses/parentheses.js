@@ -3,6 +3,7 @@
 (function () {
 function id(x) {return x[0]; }
  function TRUE (d) { return true; } var grammar = {
+    Lexer: undefined,
     ParserRules: [
     {"name": "P", "symbols": [{"literal":"("}, "E", {"literal":")"}], "postprocess": TRUE},
     {"name": "P", "symbols": [{"literal":"{"}, "E", {"literal":"}"}], "postprocess": TRUE},
